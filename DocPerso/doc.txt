@@ -1,0 +1,24 @@
+typedef struct{
+	int id;
+	char nomFichier[256];
+	int erreurCompil;
+	int nbrExec;
+	long dureeExecTotal;
+} Programme;
+
+Programme listeProg[999]; //Liste présente dans la mém partagée
+
+typedef struct {
+	char MessageText[256];
+	int code;
+} Message;
+	
+liste des fichiers :
+
+SERVEUR ==> gstat.c / maint.c / serveur.c / serverUtils.c / serverUtils.h
+
+CLIENT ==> client.c / clientUtils.c / clientUtils.h
+
+GENERAL ==> utils.h / utils.c / Makefile
+
+DOSSIER ==> Applications (contiendra les .c)
