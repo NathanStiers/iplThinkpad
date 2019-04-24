@@ -12,7 +12,7 @@
 
 int sockfd;
 
-int initSocketClient(char ServerIP[16], int Serverport){
+void initSocketClient(char ServerIP[16], int Serverport){
 	struct sockaddr_in addr;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	memset(&addr,0,sizeof(addr));
@@ -20,7 +20,6 @@ int initSocketClient(char ServerIP[16], int Serverport){
 	addr.sin_port= htons(Serverport);
 	inet_aton(ServerIP,&addr.sin_addr);
 	connect(sockfd, (struct sockaddr*) &addr, sizeof(addr));
-	return sockfd;
 }
 
 void ecrireMessageAuServeur(structMessage* msg){
