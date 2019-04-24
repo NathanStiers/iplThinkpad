@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <string.h>
 
 #include "clientUtils.h"
 #include "utils.h"
@@ -23,12 +24,12 @@ int initSocketClient(char ServerIP[16], int Serverport){
 	return sockfd;
 }
 
-void ecrireMessageAuServeur(){
-	write(sockfd,&msg,sizeof(msg));
+void ecrireMessageAuServeur(structMessage* msg){
+	int ret = write(sockfd,msg,sizeof(*msg));
 	checkNeg(ret,"write client error");
 }
 
-void lireMessageDuServeur(){
-	read(sockfd,&msg,sizeof(msg));
+void lireMessageDuServeur(structMessage* msg){
+	int ret = read(sockfd,msg,sizeof(*msg));
 	checkNeg(ret,"read client error");
 }
