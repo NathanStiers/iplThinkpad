@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <string.h>
+#include "utils.h"
 
 #define MAX_UTILISATEURS 50
 
@@ -20,5 +22,9 @@ typedef struct{
 } Programme;
 
 int initServeur(int port);
+
+void ecrireMessageClient(structMessage * msg, int sockfd);
+
+void lireMessageClient(structMessage * msg, int sockfd);
 
 #endif

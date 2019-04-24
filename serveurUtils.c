@@ -15,3 +15,13 @@ int initServeur(int port){
     listen(sockfd, MAX_UTILISATEURS);
     return sockfd;
 }
+
+void ecrireMessageClient(structMessage * msg, int sockfd){
+	int ret = read(sockfd, msg, sizeof(*msg));
+	checkNeg(ret, "Erreur de lecture serveur");
+}
+
+void lireMessageClient(structMessage * msg, int sockfd){
+	int ret = write(sockfd, msg, sizeof(*msg));
+	checkNeg(ret, "Erreur d'écriture serveur");
+}

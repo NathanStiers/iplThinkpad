@@ -13,7 +13,6 @@
 int sockfd;
 
 int initSocketClient(char ServerIP[16], int Serverport){
-	int ret;
 	struct sockaddr_in addr;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	memset(&addr,0,sizeof(addr));
