@@ -23,8 +23,8 @@ typedef struct{
 
 int initServeur(int port);
 
-void ecrireMessageClient(structMessage * msg, int sockfd);
-
 void lireMessageClient(structMessage * msg, int sockfd);
+
+void ecrireMessageClient(structMessage * msg, int sockfd);
 
 #endif
