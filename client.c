@@ -12,7 +12,6 @@
 int main(int argc, char* argv[]){
 	
 	//int ret;
-
 	structMessage msg;
 	
 	printf("Bienvenue dans le programme\n");
