@@ -16,12 +16,12 @@ int initServeur(int port){
     return sockfd;
 }
 
-void lireMessageClient(structMessage * msg, int sockfd){
+void lireMessageClient(structMessage *msg, int sockfd){
 	int ret = read(sockfd, msg, sizeof(*msg));
 	checkNeg(ret, "Erreur de lecture serveur");
 }
 
-void ecrireMessageClient(structMessage * msg, int sockfd){
+void ecrireMessageClient(structMessage *msg, int sockfd){
 	int ret = write(sockfd, msg, sizeof(*msg));
 	checkNeg(ret, "Erreur d'écriture serveur");
 }
