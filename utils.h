@@ -3,13 +3,19 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
 #include <stdbool.h>
+
+#define MAX_LONGUEUR 256
 
 void checkCond(bool cond, char* msg);
 
 void checkNeg(int res, char* msg);
 
 void checkNull(void* res, char* msg);
+
+typedef struct {
+	char MessageText[MAX_LONGUEUR];
+	int code;
+} structMessage;
 
 #endif
