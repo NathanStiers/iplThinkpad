@@ -1,3 +1,6 @@
+#ifndef _CLIENTUTILS_H_
+#define _CLIENTUTILS_H_
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -10,3 +13,5 @@ void initSocketClient(char ServerIP[16], int Serverport);
 void ecrireMessageAuServeur(structMessage* msg);
 
 void lireMessageDuServeur(structMessage* msg);
+
+#endif
