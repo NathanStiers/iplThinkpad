@@ -56,6 +56,23 @@ void closeCheck(int fd) {
   checkNeg(r, "Error CLOSE");
 }
 
+//*****************************************************************************
+// FORK
+//*****************************************************************************
+
+pid_t fork_and_run(void (*handler)()) {
+  int childId = fork();
+  checkNeg(childId, "Error [fork_and_run]");
+  
+  // child process
+  if (childId == 0) {  
+    (*handler)();
+    exit(EXIT_SUCCESS);
+  }
+  
+  return childId;
+}
+
 
 
 

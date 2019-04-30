@@ -36,6 +36,8 @@ int nread(int fd, void* buff, int n);
 
 void closeCheck(int fd);
 
+pid_t fork_and_run(void (*handler)())
+
 typedef struct {
 	char MessageText[MAX_LONGUEUR];
 	int code;
