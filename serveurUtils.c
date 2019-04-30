@@ -26,6 +26,16 @@ void ecrireMessageClient(structMessage *msg, int sockfd){
 	checkNeg(ret, "Erreur d'écriture serveur");
 }
 
+int contains(int id){
+  int indice = -1;
+  for(int i=0;i<tailleLogique; i++){
+    if(listeProgramme[i]->id == id){
+      indice = i;
+    }
+  }
+  return indice;
+}
+
 //******************************************************************************
 //MEMOIRE PARTAGEE
 //******************************************************************************
@@ -33,11 +43,10 @@ void ecrireMessageClient(structMessage *msg, int sockfd){
 void init_shm() {
   shm_id = shmget(KEY_SHM, sizeof(int), IPC_CREAT | 0666);
   checkNeg(shm_id, "Error shmget");
-  for(int i=0;i<1000;i++){
+  for(int i=0;i<TAILLEPHYSIQUE;i++){
     listeProgramme[i] = shmat(shm_id, NULL, 0);
+    checkCond(listeProgramme == (void*) -1, "Error shmat");
   }
-  checkCond(listeProgramme == (void*) -1, "Error shmat");
-
 }
 
 void shmdtCheck() {
@@ -85,4 +94,3 @@ void del_sem() {
   int rv = semctl(sem_id, 0, IPC_RMID);
   checkNeg(rv, "Error semctl");
 }
-

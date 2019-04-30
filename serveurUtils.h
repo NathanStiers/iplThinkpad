@@ -36,7 +36,7 @@ union semun {
 
 Programme* listeProgramme[TAILLEPHYSIQUE];
 
-int tailleLogique = 0;
+int tailleLogique;
 
 int initServeur(int port);
 
@@ -59,5 +59,10 @@ void down();
 void up();
 
 void del_sem();
+
+/**
+ * Renvoie l'indice de l'id si présent, -1 sinon
+ */
+int contains(int id);
 
 #endif
