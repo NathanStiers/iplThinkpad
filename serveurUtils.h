@@ -26,7 +26,7 @@ typedef struct{
 } Programme;
 
 Programme* listeProgramme[TAILLEPHYSIQUE];
-int tailleLogique = 0;
+int tailleLogique;
 
 int initServeur(int port);
 
@@ -39,5 +39,10 @@ void init_shm();
 void shmdtCheck();
 
 void detruire_shm();
+
+/**
+ * Renvoie l'indice de l'id si présent, -1 sinon
+ */
+int contains(int id);
 
 #endif
