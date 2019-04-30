@@ -3,7 +3,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #define MAX_LONGUEUR 256
 
@@ -19,6 +25,16 @@ void checkCond(bool cond, char* msg);
 void checkNeg(int res, char* msg);
 
 void checkNull(void* res, char* msg);
+
+int openConfig(char* path, int flag, int mode);
+
+void writeCheck(int fd, void* buff, int size);
+
+int readCheck(int fd, void* buff, int size);
+
+int nread(int fd, void* buff, int n);
+
+void closeCheck(int fd);
 
 typedef struct {
 	char MessageText[MAX_LONGUEUR];

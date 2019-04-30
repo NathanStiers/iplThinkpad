@@ -8,10 +8,13 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
 #include <string.h>
 #include "utils.h"
 
 #define MAX_UTILISATEURS 50
+#define KEY 42
 
 typedef struct{
 	int id;
@@ -26,5 +29,11 @@ int initServeur(int port);
 void lireMessageClient(structMessage * msg, int sockfd);
 
 void ecrireMessageClient(structMessage * msg, int sockfd);
+
+void init_shm();
+
+void shmdtCheck();
+
+void detruire_shm();
 
 #endif
