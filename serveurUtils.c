@@ -2,7 +2,6 @@
 #include "utils.h"
 
 int shm_id;
-Programme* z;
 
 int initServeur(int port){
 	struct sockaddr_in addr;
@@ -38,12 +37,14 @@ void init_shm() {
   shm_id = shmget(KEY, sizeof(int), IPC_CREAT | 0666);
   checkNeg(shm_id, "Error shmget");
   
-  z = shmat(shm_id, NULL, 0);
-  checkCond(z == (void*) -1, "Error shmat");
+  for(int i=0;i<1000;i++){
+    listeProgramme[i] = shmat(shm_id, NULL, 0);
+  }
+  checkCond(listeProgramme == (void*) -1, "Error shmat");
 }
 
 void shmdtCheck() {
-  int r = shmdt(z);
+  int r = shmdt(listeProgramme);
   checkNeg(r, "Error shmdt");
 }
 

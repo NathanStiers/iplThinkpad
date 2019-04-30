@@ -4,5 +4,6 @@
 #include "serveurUtils.h"
 
 int main(int argc, char* argv[]){
+	init_shm();
 	exit(0);
 }

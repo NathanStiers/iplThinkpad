@@ -15,6 +15,7 @@
 
 #define MAX_UTILISATEURS 50
 #define KEY 42
+#define TAILLEPHYSIQUE 1000
 
 typedef struct{
 	int id;
@@ -23,6 +24,9 @@ typedef struct{
 	int nbrExec;
 	long dureeExecTotal;
 } Programme;
+
+Programme* listeProgramme[TAILLEPHYSIQUE];
+int tailleLogique = 0;
 
 int initServeur(int port);
 
