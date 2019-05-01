@@ -14,4 +14,8 @@ void ecrireMessageAuServeur(structMessage* msg);
 
 void lireMessageDuServeur(structMessage* msg);
 
+void filsMinuterie();
+
+void filsExecution();
+
 #endif
