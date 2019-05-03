@@ -12,6 +12,8 @@
 #include <sys/sem.h>
 #include <sys/shm.h>
 #include <string.h>
+#include <sys/types.h>
+#include <signal.h>
 #include "utils.h"
 
 #define MAX_UTILISATEURS 50
@@ -59,6 +61,8 @@ void down();
 void up();
 
 void del_sem();
+
+void arret_programme(int sig);
 
 /**
  * Renvoie l'indice de l'id si présent, -1 sinon
