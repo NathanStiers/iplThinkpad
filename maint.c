@@ -14,7 +14,6 @@ int main(int argc, char* argv[]){
 				break;
 			case 2:
 				init_shm();
-				printf("yahouu : %d\n", listeProgramme[266]->id);
 				shmdtCheck();
 				detruire_shm();
 				printf("La destruction de la mémoire partagée a été effectuée.\n");

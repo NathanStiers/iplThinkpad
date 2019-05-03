@@ -60,13 +60,26 @@ void closeCheck(int fd) {
 // FORK
 //*****************************************************************************
 
-pid_t fork_and_run(void (*handler)()) {
+pid_t fork_and_run_arg(void (*handler)(), void* arg0) {
   int childId = fork();
-  checkNeg(childId, "Error [fork_and_run]");
+  checkNeg(childId, "Error [fork_and_run_arg]");
   
   // child process
   if (childId == 0) {  
-    (*handler)();
+    (*handler)(arg0);
+    exit(EXIT_SUCCESS);
+  }
+  
+  return childId;
+}
+
+pid_t fork_and_run_arg_arg(void (*handler)(), void* arg0, void* arg1) {
+  int childId = fork();
+  checkNeg(childId, "Error [fork_and_run_arg_arg]");
+
+  // child process
+  if (childId == 0) {  
+    (*handler)(arg0, arg1);
     exit(EXIT_SUCCESS);
   }
   

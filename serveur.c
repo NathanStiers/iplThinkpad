@@ -3,6 +3,7 @@
 #include "serveurUtils.h"
 
 int main(int argc, char* argv[]){
+
 	int sockfd, newsockfd, ret;
 	int nbrConnexion = 0;
 	int connexions[MAX_UTILISATEURS];

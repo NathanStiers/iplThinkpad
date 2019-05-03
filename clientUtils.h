@@ -14,8 +14,12 @@ void ecrireMessageAuServeur(structMessage* msg);
 
 void lireMessageDuServeur(structMessage* msg);
 
-void filsMinuterie();
+void filsMinuterie(int* delay, int pipefdMinuterie[]);
 
-void filsExecution();
+void filsExecution(int pipefdExec[]);
+
+void terminal();
+
+void afficherMessageCmd();
 
 #endif
