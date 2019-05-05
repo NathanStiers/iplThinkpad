@@ -39,12 +39,17 @@ int main(int argc, char* argv[]){
 					lireMessageClient(&msg, connexions[i]);
 					switch(msg.code){
 						case AJOUT:
-						printf("ajout\n");
-						break;
+							printf("ajout\n");
+							break;
 						case EXEC:
-						printf("exec\n");
-						break;
+							printf("exec\n");
+							break;
 					}
+				}
+				// pareil que dans le client, reset le select
+				FD_ZERO(&rfds);
+				for(int i=0;i<nbrConnexion;i++){
+					FD_SET(connexions[i], &rfds);
 				}
 			}
 		}

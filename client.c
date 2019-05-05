@@ -56,6 +56,9 @@ int main(int argc, char* argv[]){
  * permet à l'utilisateur de rentrer des commandes.
  * */
 void terminal(int pipefdMinuterie[]){
+	int fdFichier;
+	structMessage msg;
+	int idMintuerie = -1;
 	int tabEcoute[TABECOUTE];
 	tabEcoute[0] = 0;
 	tabEcoute[1] = pipefdMinuterie[0];
@@ -74,25 +77,49 @@ void terminal(int pipefdMinuterie[]){
 		checkNeg(ret, "Erreur select");
 		for(int i=0;i<TABECOUTE;i++){
 			if(FD_ISSET(tabEcoute[i], &monSet)){
-				switch(i){
-					case 0://Cas user terminal
+				switch(i){ 
+					case 0: // Cas user terminal
 						ret = read(tabEcoute[i], &buffer, MAX_LONGUEUR);
 						checkNeg(ret, "Erreur de read dans le cas terminal (PERE)");
 						bufferTemp = strtok(buffer, " ");
 						switch(*bufferTemp){
-							case '+':
-							break;
-							case '*':
-							break;
-							case '@':
-							break;
-							case 'q':
-							break;
+							case '+': // Ajoute un fichier C sur le serveur.
+								bufferTemp = strtok(NULL,".");
+								fdFichier = open(strcat(bufferTemp,".c"), O_RDONLY, 0444);
+								checkNeg(fdFichier, "Erreur lors de l'ouverture du fichier.");
+								ret = read(fdFichier, &buffer, MAX_LONGUEUR);
+								checkNeg(ret, "Erreur lors de la lecture du fichier.");
+								printf("Contenu du fichier : %s\n",buffer);
+
+								msg.code = AJOUT;
+								close(fdFichier);
+								ecrireMessageAuServeur(&msg);
+								break;
+							case '*': // Transmet le programme à exec par la minuterie.
+								bufferTemp = strtok(NULL, " ");
+								idMintuerie = strtol(bufferTemp, NULL, 0);
+								printf("test le stockage de l'id : %d \n",idMintuerie);
+								break;
+							case '@': // Demande d'exec un programme au serveur.
+								bufferTemp = strtok(NULL, " "); 
+								break;
+							case 'q': // Déconnecte le client et libère les ressources.
+								break;
+						}
+						afficherMessageCmd();
+					break;
+					case 1: // Cas mintuerie
+						ret = read(tabEcoute[i], &msg, sizeof(msg));
+						if(msg.code == MINUTERIE){
+							printf("Réception du message de la minuterie.\n");
 						}
 					break;
-					case 1: //Cas minuterie
-					break;
 				}
+			}
+			// Reset du select (A demander si possible de faire mieux)
+			FD_ZERO(&monSet);
+			for(int i=0;i<TABECOUTE;i++){
+				FD_SET(tabEcoute[i], &monSet);
 			}
 		}
 	}
@@ -102,10 +129,12 @@ void terminal(int pipefdMinuterie[]){
  * Ecris toutes les x temps sur le pipefd vers le père.
  * */
 void filsMinuterie(int* delay, int pipefdMinuterie[]){
+	structMessage msg;
+	msg.code = 10;
 	close(pipefdMinuterie[0]);
 	while(1){
-		sleep(5);
-		printf("Fils minuterie\n");
+		sleep(*delay);
+		write(pipefdMinuterie[1], &msg, sizeof(msg));
 	}
 }
 
@@ -115,8 +144,6 @@ void filsMinuterie(int* delay, int pipefdMinuterie[]){
 void filsExecution(int pipefdExec[]){
 	close(pipefdExec[1]);	
 	while(1){
-		sleep(7);
-		printf("Fils d'éxecution.\n");
 	}
 }
 
@@ -124,9 +151,11 @@ void filsExecution(int pipefdExec[]){
  * Affiche sur le terminal les commandes disponnibles
  * */
 void afficherMessageCmd(){
-	printf("Liste des commandes utilisables :\n");
-	printf("+ <chemin d’un fichier C>\n");
-	printf("* num\n");
-	printf("@ num\n");
-	printf("q\n");
+	printf("**************************************************\n");
+	printf("* Liste des commandes utilisables :\n");
+	printf("* Ajout d'un fichier : + <chemin d’un fichier C>\n");
+	printf("* Programme pour la minuterie : * num\n");
+	printf("* Demande l'éxecution d'un programme : @ num\n");
+	printf("* Déconnection : q\n");
+	printf("***************************************************\n");
 }

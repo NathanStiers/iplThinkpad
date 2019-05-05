@@ -14,6 +14,7 @@
 #define MAX_LONGUEUR 256
 
 //MESSAGE CODE
+#define MINUTERIE 10
 #define DEMANDE_CONNEXION 1
 #define CONNEXION_REUSSIE 2
 #define CONNEXION_ECHOUEE 3
@@ -43,6 +44,7 @@ pid_t fork_and_run_arg_arg(void (*handler)(), void* arg0, void* arg1);
 typedef struct {
 	char MessageText[MAX_LONGUEUR];
 	int code;
+	int idProgramme;
 } structMessage;
 
 #endif

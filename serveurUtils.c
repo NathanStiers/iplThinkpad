@@ -37,9 +37,9 @@ int contains(int id){
 }
 
 void arret_programme(int sig){ // REGARDER LA SOLUTION INTERNET. PLUS CHIANT MAIS PAS MAL
-	int status;
-	printf("Arrêt en cours, il faut attendre de finir l'execution des programmes fils.\n");
-	waitpid(fils, &status, WNOHANG);
+	//int status; unused
+	printf("Arrï¿½t en cours, il faut attendre de finir l'execution des programmes fils.\n");
+	//waitpid(fils, &status, WNOHANG);    Comment car fils undeclared
 	exit(0);
 }
 
