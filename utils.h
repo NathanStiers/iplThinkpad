@@ -10,6 +10,7 @@
 #include <sys/signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <string.h>
 
 #define MAX_LONGUEUR 256
 
@@ -27,7 +28,7 @@ void checkNeg(int res, char* msg);
 
 void checkNull(void* res, char* msg);
 
-int openConfig(char* path, int flag, int mode);
+int openConfig(char* path);
 
 void writeCheck(int fd, void* buff, int size);
 

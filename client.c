@@ -49,9 +49,9 @@ void terminal(int pipefdMinuterie[], int pipefdExec[])
 {
 	int fdFichier;
 	structMessage msg;
-	int idMintuerie[MAXPROGS];
-	int tailleLogiqueMinuterie = 0;
 	int tabEcoute[TABECOUTE];
+	int idMinuterie[MAXPROGS];
+	int tailleLogiqueMinuterie = 0;
 	tabEcoute[0] = 0;
 	tabEcoute[1] = pipefdMinuterie[0];
 	int ret;
@@ -112,7 +112,7 @@ void terminal(int pipefdMinuterie[], int pipefdExec[])
 						break;
 					case '*': // Transmet le programme à exec par la minuterie.
 						bufferTemp = strtok(NULL, " ");
-						idMintuerie[tailleLogiqueMinuterie] = strtol(bufferTemp, NULL, 0);
+						idMinuterie[tailleLogiqueMinuterie] = strtol(bufferTemp, NULL, 0);
 						tailleLogiqueMinuterie++;
 						break;
 					case '@': // Demande d'exec un programme au serveur.
@@ -147,7 +147,7 @@ void terminal(int pipefdMinuterie[], int pipefdExec[])
 					{
 						printf("Réception du message de la minuterie.\n");
 						for(int i=0;i<tailleLogiqueMinuterie;i++){
-							msg.idProgramme = idMintuerie[i];
+							msg.idProgramme = idMinuterie[i];
 							write(pipefdExec[1], &msg, sizeof(msg));
 						}
 					}
