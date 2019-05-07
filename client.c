@@ -12,6 +12,7 @@
 #include "clientUtils.h"
 
 #define TABECOUTE 2
+#define MAXPROGS 50
 
 int main(int argc, char* argv[]){
 	if(argc > 4){
@@ -58,7 +59,8 @@ int main(int argc, char* argv[]){
 void terminal(int pipefdMinuterie[]){
 	int fdFichier;
 	structMessage msg;
-	int idMintuerie = -1;
+	int idMintuerie[MAXPROGS];
+	int tailleLogiqueMinuterie = 0;
 	int tabEcoute[TABECOUTE];
 	tabEcoute[0] = 0;
 	tabEcoute[1] = pipefdMinuterie[0];
@@ -97,7 +99,7 @@ void terminal(int pipefdMinuterie[]){
 								break;
 							case '*': // Transmet le programme à exec par la minuterie.
 								bufferTemp = strtok(NULL, " ");
-								idMintuerie = strtol(bufferTemp, NULL, 0);
+								//idMintuerie = strtol(bufferTemp, NULL, 0);
 								printf("test le stockage de l'id : %d \n",idMintuerie);
 								break;
 							case '@': // Demande d'exec un programme au serveur.

@@ -45,6 +45,7 @@ typedef struct {
 	char MessageText[MAX_LONGUEUR];
 	int code;
 	int idProgramme;
+	char nomFichier[MAX_LONGUEUR];
 } structMessage;
 
 #endif
