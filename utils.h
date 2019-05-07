@@ -13,7 +13,7 @@
 #include <string.h>
 
 #define MAX_LONGUEUR 256
-
+#define MAXPROGS 50
 //MESSAGE CODE
 #define MINUTERIE 10
 #define DEMANDE_CONNEXION 1
@@ -47,7 +47,8 @@ char* itoa(int i, char b[]);
 typedef struct {
 	char MessageText[MAX_LONGUEUR];
 	int code;
-	int idProgramme;
+	int idProgramme[MAXPROGS];
+	int nbProgrammes;
 	char nomFichier[MAX_LONGUEUR];
 } structMessage;
 

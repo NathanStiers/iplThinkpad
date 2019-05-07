@@ -95,8 +95,9 @@ void terminal(int pipefdMinuterie[], int pipefdExec[], int fdMinuterie, int fdEx
 							strcpy(msg.MessageText, buffer);
 							ecrireMessageAuServeur(&msg);
 						}
-						close(fdFichier);
 						shutdown(sockfd, SHUT_WR);
+						close(fdFichier);
+						//shutdown(sockfd, SHUT_WR);
 						lireMessageDuServeur(&msg); // doit lire plusieurs fois ... Aussi shutdown depuis le serveur ?
 						printf("\n\n**************************************************\n\n%s\n\n**************************************************\n\n", msg.MessageText);
 						break;
@@ -106,15 +107,15 @@ void terminal(int pipefdMinuterie[], int pipefdExec[], int fdMinuterie, int fdEx
 						tailleLogiqueMinuterie++;
 						break;
 					case '@': // Demande d'exec un programme au serveur.
-						connexionServeur();
 						bufferTemp = strtok(NULL, " ");
-						msg.idProgramme = strtol(bufferTemp, NULL, 0);
+						msg.idProgramme[0] = strtol(bufferTemp, NULL, 0);
+						msg.nbProgrammes = 1;
 						msg.code = EXEC;
-						ecrireMessageAuServeur(&msg);
-						// Lecture des infos fichiers
-						close(sockfd);
+						write(pipefdExec[1], &msg, sizeof(msg));
 						break;
 					case 'q': // Déconnecte le client et libère les ressources.
+						kill(fdMinuterie, SIGKILL);
+						kill(fdExec, SIGKILL);
 						exit(0);
 						break;
 					}
@@ -122,26 +123,28 @@ void terminal(int pipefdMinuterie[], int pipefdExec[], int fdMinuterie, int fdEx
 					break;
 				case 1: // Cas mintuerie
 					ret = read(tabEcoute[i], &msg, sizeof(msg));
+					checkNeg(ret, "Erreur read dans la minuterie");
 					if (msg.code == MINUTERIE)
 					{
-						printf("Réception du message de la minuterie.\n");
+						msg.nbProgrammes = tailleLogiqueMinuterie;
 						for (int i = 0; i < tailleLogiqueMinuterie; i++)
 						{
-							msg.idProgramme = idMinuterie[i];
-							write(pipefdExec[1], &msg, sizeof(msg));
+							msg.idProgramme[i] = idMinuterie[i];
 						}
+						write(pipefdExec[1], &msg, sizeof(msg));
 					}
 					break;
 				}
 			}
-			// Reset du select (A demander si possible de faire mieux)
-			FD_ZERO(&monSet);
-			for (int i = 0; i < TABECOUTE; i++)
-			{
-				FD_SET(tabEcoute[i], &monSet);
-			}
+		}
+		// Reset du select (A demander si possible de faire mieux)
+		FD_ZERO(&monSet);
+		for (int i = 0; i < TABECOUTE; i++)
+		{
+			FD_SET(tabEcoute[i], &monSet);
 		}
 	}
+	
 }
 
 /**
@@ -165,8 +168,17 @@ void filsMinuterie(int *delay, int pipefdMinuterie[])
 void filsExecution(int pipefdExec[])
 {
 	close(pipefdExec[1]);
+	int ret;
+	structMessage msg;
 	while (1)
 	{
+		ret = read(pipefdExec[0], &msg, sizeof(msg));
+		checkNeg(ret, "Erreur lors du read sur le pipe de l'éxecution.");
+		printf("Nb de programmes? %d\n", msg.nbProgrammes);
+		for (int i = 0; i < msg.nbProgrammes; i++)
+		{
+			printf("Id à exec : %d\n", msg.idProgramme[i]);
+		}
 	}
 }
 
@@ -186,6 +198,7 @@ void afficherMessageCmd()
 
 void connexionServeur()
 {
+	structMessage msg;
 	initSocketClient(SERVER_IP, PORT_IP);
 	msg.code = DEMANDE_CONNEXION;
 	ecrireMessageAuServeur(&msg);

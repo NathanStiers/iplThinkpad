@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 						write(fdFichierNouveau, msg.MessageText, strlen(msg.MessageText));
 					}
 					//lseek(fdFichierNouveau,-2,SEEK_END);
-					//dprintf(fdFichierNouveau, '\0'); 
+					//dprintf(fdFichierNouveau, '\0');  // SUPPRIMER CE PUTAIN DE H !!
 					//lseek(fdFichierNouveau,1,SEEK_END); 
 					Programme p;
 					p.id = tailleLogique;
@@ -82,10 +82,10 @@ int main(int argc, char *argv[])
 					*listeProgramme[tailleLogique] = p;
 					tailleLogique++;
 					strcat(execMethod, concatName);
-					strcat(execMethod, " 2>"); // Triste mais pas étonné
+					strcat(execMethod, " 2>");
 					strcat(execMethod, ERREUR_TO_SEND);
 					printf("%s\n", execMethod);
-					system(execMethod); // On peut utiliser system ou d'office fork and exec ?
+					system(execMethod); // On peut utiliser system ou oubligé fork and exec ?
 					fdopen = open(ERREUR_TO_SEND, 0444);
 					checkNeg(fdopen, "Impossible de lire les erreurs\n");
 					while (read(fdopen, &msg.MessageText, MAX_LONGUEUR) != 0)
@@ -96,10 +96,10 @@ int main(int argc, char *argv[])
 					break;
 				case EXEC:
 					lireMessageClient(&msg, connexions[i]);
-					numProg = msg.idProgramme;
+					numProg = msg.idProgramme[0]; // Faudra m'expliquer le tableau
 					if(contains(numProg) == -1){
 						msg.code = -2;
-						msg.idProgramme = numProg;
+						msg.idProgramme[0] = numProg;
 						ecrireMessageClient(&msg, connexions[i]);
 						break;
 					}
