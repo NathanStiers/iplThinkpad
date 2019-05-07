@@ -22,7 +22,7 @@ void checkNull(void* res, char* msg) {
 //*****************************************************************************
 // FICHIERS
 //*****************************************************************************
-int openConfig(char* path, int flag, int mode) {
+int openConfig(char* path) {
   int fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
   checkNeg(fd, "Error OPEN");
   return fd;

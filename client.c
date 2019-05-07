@@ -59,8 +59,6 @@ int main(int argc, char* argv[]){
 void terminal(int pipefdMinuterie[]){
 	int fdFichier;
 	structMessage msg;
-	int idMintuerie[MAXPROGS];
-	int tailleLogiqueMinuterie = 0;
 	int tabEcoute[TABECOUTE];
 	tabEcoute[0] = 0;
 	tabEcoute[1] = pipefdMinuterie[0];
@@ -100,7 +98,6 @@ void terminal(int pipefdMinuterie[]){
 							case '*': // Transmet le programme à exec par la minuterie.
 								bufferTemp = strtok(NULL, " ");
 								//idMintuerie = strtol(bufferTemp, NULL, 0);
-								printf("test le stockage de l'id : %d \n",idMintuerie);
 								break;
 							case '@': // Demande d'exec un programme au serveur.
 								bufferTemp = strtok(NULL, " "); 
