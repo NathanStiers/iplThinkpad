@@ -29,23 +29,23 @@ int main(int argc, char *argv[])
 	int ret;
 	ret = pipe(pipefdMinuterie);
 	checkNeg(ret, "Problème lors du pipe de la minuterie.");
-	fork_and_run_arg_arg(&filsMinuterie, &delay, &pipefdMinuterie);
+	int fdMinuterie = fork_and_run_arg_arg(&filsMinuterie, &delay, &pipefdMinuterie);
 
 	ret = pipe(pipefdExec);
 	checkNeg(ret, "Problème lors du pipe du fils d'éxecution.");
-	fork_and_run_arg(&filsExecution, &pipefdExec);
+	int fdExec = fork_and_run_arg(&filsExecution, &pipefdExec);
 	close(pipefdExec[0]);
 	close(pipefdMinuterie[1]);
 
 	printf("Bienvenue dans le programme\n");
-	terminal(pipefdMinuterie, pipefdExec);
+	terminal(pipefdMinuterie, pipefdExec, fdMinuterie, fdExec);
 	exit(0);
 }
 
 /**
  * permet à l'utilisateur de rentrer des commandes.
  * */
-void terminal(int pipefdMinuterie[], int pipefdExec[])
+void terminal(int pipefdMinuterie[], int pipefdExec[], int fdMinuterie, int fdExec)
 {
 	int fdFichier;
 	structMessage msg;
@@ -82,19 +82,7 @@ void terminal(int pipefdMinuterie[], int pipefdExec[])
 					switch (*bufferTemp)
 					{
 					case '+': // Ajoute un fichier C sur le serveur.
-						initSocketClient(SERVER_IP, PORT_IP);
-						msg.code = DEMANDE_CONNEXION;
-						ecrireMessageAuServeur(&msg);
-						lireMessageDuServeur(&msg);
-
-						if (msg.code == CONNEXION_REUSSIE)
-						{
-							printf("Réponse du serveur : Inscription acceptée\n");
-						}
-						else
-						{
-							printf("Réponse du serveur : Inscription refusée\n");
-						}
+						connexionServeur();
 						msg.code = AJOUT;
 						bufferTemp = strtok(NULL, ".");
 						strcat(bufferTemp, ".c");
@@ -116,18 +104,7 @@ void terminal(int pipefdMinuterie[], int pipefdExec[])
 						tailleLogiqueMinuterie++;
 						break;
 					case '@': // Demande d'exec un programme au serveur.
-						initSocketClient(SERVER_IP, PORT_IP);
-						msg.code = DEMANDE_CONNEXION;
-						ecrireMessageAuServeur(&msg);
-						lireMessageDuServeur(&msg);
-						if (msg.code == CONNEXION_REUSSIE)
-						{
-							printf("Réponse du serveur : Inscription acceptée\n");
-						}
-						else
-						{
-							printf("Réponse du serveur : Inscription refusée\n");
-						}
+						connexionServeur();
 						bufferTemp = strtok(NULL, " ");
 						msg.idProgramme = strtol(bufferTemp, NULL, 0);
 						msg.code = EXEC;
@@ -146,7 +123,8 @@ void terminal(int pipefdMinuterie[], int pipefdExec[])
 					if (msg.code == MINUTERIE)
 					{
 						printf("Réception du message de la minuterie.\n");
-						for(int i=0;i<tailleLogiqueMinuterie;i++){
+						for (int i = 0; i < tailleLogiqueMinuterie; i++)
+						{
 							msg.idProgramme = idMinuterie[i];
 							write(pipefdExec[1], &msg, sizeof(msg));
 						}
@@ -202,4 +180,20 @@ void afficherMessageCmd()
 	printf("* Demande l'éxecution d'un programme : @ num\n");
 	printf("* Déconnection : q\n");
 	printf("***************************************************\n");
+}
+
+void connexionServeur()
+{
+	initSocketClient(SERVER_IP, PORT_IP);
+	msg.code = DEMANDE_CONNEXION;
+	ecrireMessageAuServeur(&msg);
+	lireMessageDuServeur(&msg);
+	if (msg.code == CONNEXION_REUSSIE)
+	{
+		printf("Réponse du serveur : Inscription acceptée\n");
+	}
+	else
+	{
+		printf("Réponse du serveur : Inscription refusée\n");
+	}
 }

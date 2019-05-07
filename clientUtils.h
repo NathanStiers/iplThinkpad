@@ -22,8 +22,10 @@ void filsMinuterie(int* delay, int pipefdMinuterie[]);
 
 void filsExecution(int pipefdExec[]);
 
-void terminal(int pipefdMintuerie[], int pipefdExec[]);
+void terminal(int pipefdMintuerie[], int pipefdExec[], int fdMinuterie, int fdExec);
 
 void afficherMessageCmd();
+
+void connexionServeur();
 
 #endif
