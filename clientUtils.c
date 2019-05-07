@@ -10,8 +10,6 @@
 #include "clientUtils.h"
 #include "utils.h"
 
-int sockfd;
-
 void initSocketClient(char ServerIP[16], int Serverport){
 	struct sockaddr_in addr;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);

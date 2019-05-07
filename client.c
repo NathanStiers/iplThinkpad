@@ -14,8 +14,10 @@
 #define TABECOUTE 2
 #define MAXPROGS 50
 
-int main(int argc, char* argv[]){
-	if(argc > 4){
+int main(int argc, char *argv[])
+{
+	if (argc > 4)
+	{
 		perror("Nombres de paramètre incorrect : ./client adr port delay");
 	}
 	int delay = atoi(argv[3]);
@@ -24,39 +26,27 @@ int main(int argc, char* argv[]){
 	//*****************************************************************************
 	int pipefdMinuterie[2];
 	int pipefdExec[2];
-	int ret;	
+	int ret;
 	ret = pipe(pipefdMinuterie);
 	checkNeg(ret, "Problème lors du pipe de la minuterie.");
 	fork_and_run_arg_arg(&filsMinuterie, &delay, &pipefdMinuterie);
-	
+
 	ret = pipe(pipefdExec);
 	checkNeg(ret, "Problème lors du pipe du fils d'éxecution.");
 	fork_and_run_arg(&filsExecution, &pipefdExec);
 	close(pipefdExec[0]);
 	close(pipefdMinuterie[1]);
 
-	structMessage msg;
-	
 	printf("Bienvenue dans le programme\n");
-	
-	initSocketClient(SERVER_IP, atoi(argv[2]));
-	msg.code = DEMANDE_CONNEXION;
-	ecrireMessageAuServeur(&msg);
-	lireMessageDuServeur(&msg);
-	
-	if (msg.code == CONNEXION_REUSSIE){
-		printf("Réponse du serveur : Inscription acceptée\n");	
-		terminal(pipefdMinuterie);	
-	} else {
-		printf("Réponse du serveur : Inscription refusée\n");		
-	}
+	terminal(pipefdMinuterie, pipefdExec);
 	exit(0);
 }
 
 /**
  * permet à l'utilisateur de rentrer des commandes.
  * */
-void terminal(int pipefdMinuterie[]){
+void terminal(int pipefdMinuterie[], int pipefdExec[])
+{
 	int fdFichier;
 	structMessage msg;
 	int idMintuerie[MAXPROGS];
@@ -66,61 +56,108 @@ void terminal(int pipefdMinuterie[]){
 	tabEcoute[1] = pipefdMinuterie[0];
 	int ret;
 	char buffer[MAX_LONGUEUR];
-	char* bufferTemp;
+	char *bufferTemp;
 	//char nbchar;
 	afficherMessageCmd();
 	fd_set monSet;
 	FD_ZERO(&monSet);
-	for(int i=0;i<TABECOUTE;i++){
+	for (int i = 0; i < TABECOUTE; i++)
+	{
 		FD_SET(tabEcoute[i], &monSet);
 	}
-	while(1){
+	while (1)
+	{
 		ret = select(FD_SETSIZE, &monSet, NULL, NULL, NULL);
 		checkNeg(ret, "Erreur select");
-		for(int i=0;i<TABECOUTE;i++){
-			if(FD_ISSET(tabEcoute[i], &monSet)){
-				switch(i){ 
-					case 0: // Cas user terminal
-						ret = read(tabEcoute[i], &buffer, MAX_LONGUEUR);
-						checkNeg(ret, "Erreur de read dans le cas terminal (PERE)");
-						bufferTemp = strtok(buffer, " ");
-						switch(*bufferTemp){
-							case '+': // Ajoute un fichier C sur le serveur.
-								bufferTemp = strtok(NULL,".");
-								fdFichier = open(strcat(bufferTemp,".c"), O_RDONLY, 0444);
-								checkNeg(fdFichier, "Erreur lors de l'ouverture du fichier.");
-								ret = read(fdFichier, &buffer, MAX_LONGUEUR);
-								checkNeg(ret, "Erreur lors de la lecture du fichier.");
-								printf("Contenu du fichier : %s\n",buffer);
+		for (int i = 0; i < TABECOUTE; i++)
+		{
+			if (FD_ISSET(tabEcoute[i], &monSet))
+			{
+				switch (i)
+				{
+				case 0: // Cas user terminal
+					ret = read(tabEcoute[i], &buffer, MAX_LONGUEUR);
+					checkNeg(ret, "Erreur de read dans le cas terminal (PERE)");
+					bufferTemp = strtok(buffer, " ");
+					switch (*bufferTemp)
+					{
+					case '+': // Ajoute un fichier C sur le serveur.
+						initSocketClient(SERVER_IP, PORT_IP);
+						msg.code = DEMANDE_CONNEXION;
+						ecrireMessageAuServeur(&msg);
+						lireMessageDuServeur(&msg);
 
-								msg.code = AJOUT;
-								close(fdFichier);
-								ecrireMessageAuServeur(&msg);
-								break;
-							case '*': // Transmet le programme à exec par la minuterie.
-								bufferTemp = strtok(NULL, " ");
-								//idMintuerie = strtol(bufferTemp, NULL, 0);
-								printf("test le stockage de l'id : %d \n",idMintuerie);
-								break;
-							case '@': // Demande d'exec un programme au serveur.
-								bufferTemp = strtok(NULL, " "); 
-								break;
-							case 'q': // Déconnecte le client et libère les ressources.
-								break;
+						if (msg.code == CONNEXION_REUSSIE)
+						{
+							printf("Réponse du serveur : Inscription acceptée\n");
 						}
-						afficherMessageCmd();
+						else
+						{
+							printf("Réponse du serveur : Inscription refusée\n");
+						}
+						msg.code = AJOUT;
+						bufferTemp = strtok(NULL, ".");
+						strcat(bufferTemp, ".c");
+						strcpy(msg.nomFichier, bufferTemp);
+						fdFichier = open(bufferTemp, O_RDONLY, 0444);
+						checkNeg(fdFichier, "Erreur lors de l'ouverture du fichier.");
+						while (read(fdFichier, &buffer, MAX_LONGUEUR) != 0)
+						{
+							strcpy(msg.MessageText, buffer);
+							ecrireMessageAuServeur(&msg);
+						}
+						close(fdFichier);
+						shutdown(sockfd, 1);
+						lireMessageDuServeur(&msg);
+						break;
+					case '*': // Transmet le programme à exec par la minuterie.
+						bufferTemp = strtok(NULL, " ");
+						idMintuerie[tailleLogiqueMinuterie] = strtol(bufferTemp, NULL, 0);
+						tailleLogiqueMinuterie++;
+						break;
+					case '@': // Demande d'exec un programme au serveur.
+						initSocketClient(SERVER_IP, PORT_IP);
+						msg.code = DEMANDE_CONNEXION;
+						ecrireMessageAuServeur(&msg);
+						lireMessageDuServeur(&msg);
+						if (msg.code == CONNEXION_REUSSIE)
+						{
+							printf("Réponse du serveur : Inscription acceptée\n");
+						}
+						else
+						{
+							printf("Réponse du serveur : Inscription refusée\n");
+						}
+						bufferTemp = strtok(NULL, " ");
+						msg.idProgramme = strtol(bufferTemp, NULL, 0);
+						msg.code = EXEC;
+						ecrireMessageAuServeur(&msg);
+						// Lecture des infos fichiers
+						close(sockfd);
+						break;
+					case 'q': // Déconnecte le client et libère les ressources.
+						exit(0);
+						break;
+					}
+					afficherMessageCmd();
 					break;
-					case 1: // Cas mintuerie
-						ret = read(tabEcoute[i], &msg, sizeof(msg));
-						if(msg.code == MINUTERIE){
-							printf("Réception du message de la minuterie.\n");
+				case 1: // Cas mintuerie
+					ret = read(tabEcoute[i], &msg, sizeof(msg));
+					if (msg.code == MINUTERIE)
+					{
+						printf("Réception du message de la minuterie.\n");
+						for(int i=0;i<tailleLogiqueMinuterie;i++){
+							msg.idProgramme = idMintuerie[i];
+							write(pipefdExec[1], &msg, sizeof(msg));
 						}
+					}
 					break;
 				}
 			}
 			// Reset du select (A demander si possible de faire mieux)
 			FD_ZERO(&monSet);
-			for(int i=0;i<TABECOUTE;i++){
+			for (int i = 0; i < TABECOUTE; i++)
+			{
 				FD_SET(tabEcoute[i], &monSet);
 			}
 		}
@@ -130,11 +167,13 @@ void terminal(int pipefdMinuterie[]){
 /**
  * Ecris toutes les x temps sur le pipefd vers le père.
  * */
-void filsMinuterie(int* delay, int pipefdMinuterie[]){
+void filsMinuterie(int *delay, int pipefdMinuterie[])
+{
 	structMessage msg;
 	msg.code = 10;
 	close(pipefdMinuterie[0]);
-	while(1){
+	while (1)
+	{
 		sleep(*delay);
 		write(pipefdMinuterie[1], &msg, sizeof(msg));
 	}
@@ -143,16 +182,19 @@ void filsMinuterie(int* delay, int pipefdMinuterie[]){
 /**
  * Demande au serveur d'executer un programme.
  * */
-void filsExecution(int pipefdExec[]){
-	close(pipefdExec[1]);	
-	while(1){
+void filsExecution(int pipefdExec[])
+{
+	close(pipefdExec[1]);
+	while (1)
+	{
 	}
 }
 
 /**
  * Affiche sur le terminal les commandes disponnibles
  * */
-void afficherMessageCmd(){
+void afficherMessageCmd()
+{
 	printf("**************************************************\n");
 	printf("* Liste des commandes utilisables :\n");
 	printf("* Ajout d'un fichier : + <chemin d’un fichier C>\n");

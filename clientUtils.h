@@ -8,6 +8,10 @@
 
 #define SERVER_IP "127.0.0.1"
 
+#define PORT_IP 8080
+
+int sockfd;
+
 void initSocketClient(char ServerIP[16], int Serverport);
 
 void ecrireMessageAuServeur(structMessage* msg);
@@ -18,7 +22,7 @@ void filsMinuterie(int* delay, int pipefdMinuterie[]);
 
 void filsExecution(int pipefdExec[]);
 
-void terminal();
+void terminal(int pipefdMintuerie[], int pipefdExec[]);
 
 void afficherMessageCmd();
 
