@@ -6,8 +6,8 @@
 
 #include "utils.h"
 
+#define TABECOUTE 2
 #define SERVER_IP "127.0.0.1"
-
 #define PORT_IP 8080
 
 int sockfd;
