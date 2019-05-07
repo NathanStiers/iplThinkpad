@@ -14,6 +14,8 @@
 #define TABECOUTE 2
 #define MAXPROGS 50
 
+structMessage msg;
+
 int main(int argc, char *argv[])
 {
 	if (argc > 4)
@@ -48,7 +50,6 @@ int main(int argc, char *argv[])
 void terminal(int pipefdMinuterie[], int pipefdExec[], int fdMinuterie, int fdExec)
 {
 	int fdFichier;
-	structMessage msg;
 	int tabEcoute[TABECOUTE];
 	int idMinuterie[MAXPROGS];
 	int tailleLogiqueMinuterie = 0;
@@ -95,8 +96,9 @@ void terminal(int pipefdMinuterie[], int pipefdExec[], int fdMinuterie, int fdEx
 							ecrireMessageAuServeur(&msg);
 						}
 						close(fdFichier);
-						shutdown(sockfd, 1);
-						lireMessageDuServeur(&msg);
+						shutdown(sockfd, SHUT_WR);
+						lireMessageDuServeur(&msg); // doit lire plusieurs fois ... Aussi shutdown depuis le serveur ?
+						printf("\n\n**************************************************\n\n%s\n\n**************************************************\n\n", msg.MessageText);
 						break;
 					case '*': // Transmet le programme à exec par la minuterie.
 						bufferTemp = strtok(NULL, " ");

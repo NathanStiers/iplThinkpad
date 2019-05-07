@@ -6,6 +6,7 @@
 int main(int argc, char* argv[]){
 	if(argc > 2){
 		//3 delay
+		// Sémaphores will be useful !
 	}else{
 		switch(atoi(argv[1])){
 			case 1:
