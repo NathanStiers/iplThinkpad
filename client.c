@@ -58,6 +58,7 @@ void terminal(int pipefdMinuterie[], int pipefdExec[], int fdMinuterie, int fdEx
 	int ret;
 	char buffer[MAX_LONGUEUR];
 	char *bufferTemp;
+	int nbChar;
 	//char nbchar;
 	afficherMessageCmd();
 	fd_set monSet;
@@ -90,16 +91,17 @@ void terminal(int pipefdMinuterie[], int pipefdExec[], int fdMinuterie, int fdEx
 						strcpy(msg.nomFichier, bufferTemp);
 						fdFichier = open(bufferTemp, O_RDONLY, 0444);
 						checkNeg(fdFichier, "Erreur lors de l'ouverture du fichier.");
-						while (read(fdFichier, &buffer, MAX_LONGUEUR) != 0)
+						while (nbChar = read(fdFichier, &buffer, MAX_LONGUEUR) != 0)
 						{
+							msg.nbChar = nbChar;
 							strcpy(msg.MessageText, buffer);
 							ecrireMessageAuServeur(&msg);
 						}
 						shutdown(sockfd, SHUT_WR);
-						close(fdFichier);
-						//shutdown(sockfd, SHUT_WR);
+						closeCheck(fdFichier);
 						lireMessageDuServeur(&msg); // doit lire plusieurs fois ... Aussi shutdown depuis le serveur ?
 						printf("\n\n**************************************************\n\n%s\n\n**************************************************\n\n", msg.MessageText);
+						closeCheck(sockfd);
 						break;
 					case '*': // Transmet le programme à exec par la minuterie.
 						bufferTemp = strtok(NULL, " ");
