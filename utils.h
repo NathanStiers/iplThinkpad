@@ -46,10 +46,14 @@ char* itoa(int i, char b[]);
 
 typedef struct {
 	char MessageText[MAX_LONGUEUR];
+	int nbChar;
 	int code;
 	int idProgramme[MAXPROGS];
 	int nbProgrammes;
 	char nomFichier[MAX_LONGUEUR];
+	int erreurCompil;
+	int nbrExec;
+	long dureeExecTotal;
 } structMessage;
 
 #endif

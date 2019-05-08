@@ -12,7 +12,11 @@
 
 int sockfd;
 
+int sockfdExec;
+
 void initSocketClient(char ServerIP[16], int Serverport);
+
+void initSocketClientExec(char ServerIP[16], int Serverport);
 
 void ecrireMessageAuServeur(structMessage* msg);
 
