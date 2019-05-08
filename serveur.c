@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 					strcat(execMethod, " 2>");
 					strcat(execMethod, ERREUR_TO_SEND);
 					printf("%s\n", execMethod);
-					system(execMethod); // On peut utiliser system ou oubligé fork and exec ?
+					system(execMethod); // On peut utiliser system ou oubligé fork and exec ? Apparement obligé fork and exec :'(
 					fdopen = open(ERREUR_TO_SEND, 0444);
 					checkNeg(fdopen, "Impossible de lire les erreurs\n");
 					while (read(fdopen, &msg.MessageText, MAX_LONGUEUR) != 0)
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 					break;
 				case EXEC:
 					lireMessageClient(&msg, connexions[i]);
-					numProg = msg.idProgramme[0]; // Faudra m'expliquer le tableau
+					numProg = msg.idProgramme[0];
 					down();
 					if(contains(numProg) == -1){
 						msg.code = -2;
