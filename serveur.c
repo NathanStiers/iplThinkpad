@@ -79,7 +79,9 @@ int main(int argc, char *argv[])
 					p.erreurCompil = 0;
 					p.nbrExec = 0;
 					p.dureeExecTotal = 0;
+					down();
 					*listeProgramme[tailleLogique] = p;
+					up();
 					tailleLogique++;
 					strcat(execMethod, concatName);
 					strcat(execMethod, " 2>");
@@ -97,12 +99,15 @@ int main(int argc, char *argv[])
 				case EXEC:
 					lireMessageClient(&msg, connexions[i]);
 					numProg = msg.idProgramme[0]; // Faudra m'expliquer le tableau
+					down();
 					if(contains(numProg) == -1){
 						msg.code = -2;
 						msg.idProgramme[0] = numProg;
 						ecrireMessageClient(&msg, connexions[i]);
+						up();
 						break;
 					}
+					up();
 					printf("exec\n");
 					break;
 				}

@@ -154,7 +154,7 @@ void filsMinuterie(int *delay, int pipefdMinuterie[])
 {
 	structMessage msg;
 	msg.code = 10;
-	close(pipefdMinuterie[0]);
+	close(pipefdMinuterie[0]); // Faudrait pas le mettre en pause tant que le client n'a pas envoyé la commande * ?
 	while (1)
 	{
 		sleep(*delay);
