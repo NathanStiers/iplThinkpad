@@ -79,6 +79,7 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			while((nbChar = read(sockfd, &msg, sizeof(msg))) != 0){
 				ret = write(1, msg.MessageText, nbChar);
 			}
+			printf("\n Le numéro de votre programme est le : %d\n", msg.idProgramme);
 			closeCheck(sockfd);
 			break;
 		case '*': // Transmet le programme à exec par la minuterie.
@@ -102,7 +103,6 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			break;
 		}
 		afficherMessageCmd();
-		break;
 	}
 }
 

@@ -1,4 +1,5 @@
 #include <sys/select.h>
+#include <errno.h>  
 #include "utils.h"
 #include "serveurUtils.h"
 #include "message.h"
@@ -60,6 +61,8 @@ int main(int argc, char *argv[])
 				int numProg = -1;
 				int fdopen;
 				int nbLut = 0;
+				int contient = 0;
+				int errsrv = 0;
 				switch (msg.code)
 				{
 				case AJOUT:
@@ -89,26 +92,37 @@ int main(int argc, char *argv[])
 					compile(concatName);
 					fdopen = open("res_compile.txt", 0444);
 					checkNeg(fdopen, "Impossible de lire les erreurs\n");
+					msg.idProgramme = tailleLogique-1;
 					while ((nbLut = read(fdopen, &msg.MessageText, MAX_LONGUEUR)) != 0)
 					{
 						write(connexions[i], msg.MessageText, nbLut);
 					}
 					shutdown(connexions[i], SHUT_WR);
+					printf("Ajout terminé !\n");
 					break;
 				case EXEC:
-					lireMessageClient(&msg, connexions[i]);
 					numProg = msg.idProgramme;
+					printf("%d\n", numProg);
 					down();
-					if (contains(numProg) == -1)
+					contient = contains(numProg);
+					if (contient == -1)
 					{
 						msg.code = -2;
 						msg.idProgramme = numProg;
+						printf("Le programme à pas été ajouté\n");
 						ecrireMessageClient(&msg, connexions[i]);
 						up();
 						break;
 					}
+					fdopen = open(listeProgramme[contient]->nomFichier, O_CREAT | O_EXCL, 0666);
+					errsrv = errno;
 					up();
-					printf("exec\n");
+					if(errsrv == EEXIST){
+						printf("Existe\n");
+					}else{
+						printf("Existe pas\n");
+					}
+					printf("Execution terminée !\n");
 					break;
 				}
 			}
