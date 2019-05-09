@@ -58,8 +58,8 @@ int main(int argc, char *argv[])
 				int fdFichierNouveau = -1;
 				char concatName[255] = "programmes/";
 				int numProg = -1;
-				//char useless[5];
 				int fdopen;
+				int nbLut = 0;
 				switch (msg.code)
 				{
 				case AJOUT:
@@ -76,8 +76,6 @@ int main(int argc, char *argv[])
 					{
 						write(fdFichierNouveau, msg.MessageText, strlen(msg.MessageText));
 					}
-					//int fdErreur = open();
-					//while
 					Programme p;
 					p.id = tailleLogique;
 					strcpy(p.nomFichier, nomProgramme); // Il faudrait p-e ajouter l'id au nom de fichier pour éviter les collisions.
@@ -91,10 +89,11 @@ int main(int argc, char *argv[])
 					compile(concatName);
 					fdopen = open("res_compile.txt", 0444);
 					checkNeg(fdopen, "Impossible de lire les erreurs\n");
-					while (read(fdopen, &msg.MessageText, MAX_LONGUEUR) != 0)
+					while ((nbLut = read(fdopen, &msg.MessageText, MAX_LONGUEUR)) != 0)
 					{
-						write(connexions[i], msg.MessageText, strlen(msg.MessageText));
+						write(connexions[i], msg.MessageText, nbLut);
 					}
+					shutdown(connexions[i], SHUT_WR);
 					break;
 				case EXEC:
 					lireMessageClient(&msg, connexions[i]);
