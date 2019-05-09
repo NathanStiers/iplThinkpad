@@ -3,8 +3,6 @@
 #include "serveurUtils.h"
 #include "message.h"
 
-#define ERREUR_TO_SEND "errorsToSend.txt"
-
 int main(int argc, char *argv[])
 {
 
@@ -53,8 +51,8 @@ int main(int argc, char *argv[])
 				int titreConnu = 0;
 				int fdFichierNouveau = -1;
 				char concatName[255] = "programmes/";
-				char execMethod[255] = "cc -c ";
 				int numProg = -1;
+				int status;
 				//char useless[5];
 				int fdopen;
 				switch (msg.code)
@@ -74,6 +72,19 @@ int main(int argc, char *argv[])
 					//lseek(fdFichierNouveau,-2,SEEK_END);
 					//dprintf(fdFichierNouveau, '\0');  // SUPPRIMER CE PUTAIN DE H !!
 					//lseek(fdFichierNouveau,1,SEEK_END); 
+					
+			  
+					printf("**************************\n");
+					printf("REDIRECTION DE STDERR\n");
+					printf("**************************\n");
+					int stderr_copy = dup(2);
+					checkNeg(stderr_copy, "ERROR dup");
+	
+					fork_and_run_arg(ajoutCompile, nomProgramme);
+					wait(&status);
+					
+					//int fdErreur = open();
+					//while
 					Programme p;
 					p.id = tailleLogique;
 					strcpy(p.nomFichier, nomProgramme); // Il faudrait p-e ajouter l'id au nom de fichier pour éviter les collisions.
@@ -84,11 +95,7 @@ int main(int argc, char *argv[])
 					*listeProgramme[tailleLogique] = p;
 					up();
 					tailleLogique++;
-					strcat(execMethod, concatName);
-					strcat(execMethod, " 2>");
-					strcat(execMethod, ERREUR_TO_SEND);
-					printf("%s\n", execMethod);
-					system(execMethod); // On peut utiliser system ou oubligé fork and exec ?
+					
 					fdopen = open(ERREUR_TO_SEND, 0444);
 					checkNeg(fdopen, "Impossible de lire les erreurs\n");
 					while (read(fdopen, &msg.MessageText, MAX_LONGUEUR) != 0)
@@ -96,10 +103,16 @@ int main(int argc, char *argv[])
 							write(connexions[i], msg.MessageText, strlen(msg.MessageText));
 						}
 					printf("ajout effectué\n");
+					printf("**************************\n");
+					printf("RÉTABLISSEMENT DE STDERR\n");
+					printf("**************************\n");
+					ret = dup2(stderr_copy, 2);
+					checkNeg(ret, "ERROR dup");
+					close(stderr_copy);
 					break;
 				case EXEC:
 					lireMessageClient(&msg, connexions[i]);
-					numProg = msg.idProgramme[0]; // Faudra m'expliquer le tableau
+					numProg = msg.idProgramme[0];
 					down();
 					if(contains(numProg) == -1){
 						msg.code = -2;

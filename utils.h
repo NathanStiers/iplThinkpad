@@ -28,6 +28,8 @@ int nread(int fd, void* buff, int n);
 
 void closeCheck(int fd);
 
+pid_t fork_and_run(void (*handler)());
+
 pid_t fork_and_run_arg(void (*handler)(), void* arg0);
 
 pid_t fork_and_run_arg_arg(void (*handler)(), void* arg0, void* arg1);
