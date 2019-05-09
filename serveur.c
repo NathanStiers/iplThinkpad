@@ -103,24 +103,39 @@ int main(int argc, char *argv[])
 				case EXEC:
 					numProg = msg.idProgramme;
 					printf("%d\n", numProg);
+					msg.idProgramme = numProg;
+					msg.dureeExecTotal = -1;					
 					down();
 					contient = contains(numProg);
 					if (contient == -1)
 					{
 						msg.code = -2;
-						msg.idProgramme = numProg;
 						printf("Le programme à pas été ajouté\n");
 						ecrireMessageClient(&msg, connexions[i]);
 						up();
+						printf("Execution terminée !\n");
 						break;
 					}
 					fdopen = open(listeProgramme[contient]->nomFichier, O_CREAT | O_EXCL, 0666);
 					errsrv = errno;
 					up();
 					if(errsrv == EEXIST){
-						printf("Existe\n");
+						printf("**************************\n");
+						printf("EXÉCUTION\n");
+						printf("**************************\n");
+						long t1 = now();
+						fork_and_run(handler2);
+						wait(&status);
+						long t2 = now();
+						
+						printf("SI %d != 0 ALORS execution ok\n", WIFEXITED(status));
+						printf("SI exécution ok ALORS les statut de l'exécution = %d\n", WEXITSTATUS(status));
+						printf("Le temps d'exécution = %ld\n", t2 - t1);
+						
 					}else{
-						printf("Existe pas\n");
+						msg.code = -1;
+						printf("Le programme contient des erreurs\n");
+						ecrireMessageClient(&msg, connexions[i]);
 					}
 					printf("Execution terminée !\n");
 					break;
