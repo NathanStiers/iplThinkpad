@@ -3,6 +3,8 @@
 #include "serveurUtils.h"
 #include "message.h"
 
+void handler2();
+
 void handler1();
 
 void compile();
@@ -86,8 +88,8 @@ int main(int argc, char *argv[])
 					*listeProgramme[tailleLogique] = p;
 					up();
 					tailleLogique++;
-					compile(p.nomFichier);
-					fdopen = open(ERREUR_TO_SEND, 0444);
+					compile(concatName);
+					fdopen = open("res_compile.txt", 0444);
 					checkNeg(fdopen, "Impossible de lire les erreurs\n");
 					while (read(fdopen, &msg.MessageText, MAX_LONGUEUR) != 0)
 					{
@@ -123,9 +125,16 @@ int main(int argc, char *argv[])
 
 void handler1(char nomFichier[MAX_LONGUEUR])
 {
-	//char* nomFichierTemp = strtok(nomFichier, ".c");
-	execl("/usr/bin/gcc", "gcc", "-o", "programmes/test", "programmes/test.c", NULL);
+	char fichierC[MAX_LONGUEUR];
+	strcpy(fichierC, nomFichier);
+	char * fichier = strtok(nomFichier, ".");
+	execl("/usr/bin/gcc", "gcc", "-o", fichier, fichierC, NULL);
 	perror("Error execl 1");
+}
+
+void handler2() {
+  execl("./hello", "hello", NULL);
+  perror("Error exec 2");
 }
 
 void compile(char nomFichier[MAX_LONGUEUR])
