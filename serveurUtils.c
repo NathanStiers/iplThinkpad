@@ -38,11 +38,31 @@ int contains(int id){
   return indice;
 }
 
+void ajoutCompile(char* name){
+	printf("**************************\n");
+	printf("CRÉATION DU FICHIER %s\n", ERREUR_TO_SEND);
+	printf("**************************\n");
+	int fdErreur = open(ERREUR_TO_SEND, O_CREAT | O_WRONLY| O_TRUNC, 0666);
+	checkNeg(fdErreur, "ERROR open");
+	int ret = dup2(fdErreur, 2);
+	checkNeg(ret, "ERROR dup2");
+	printf("**************************\n");
+	printf("COMPILATION DU FICHIER %s.c\n", name);
+	printf("**************************\n");
+	execl("/usr/bin/gcc", "gcc", "-o", name, strcat(name, ".c"), NULL);
+	perror("Error execl 1");	
+}
+
 void arret_programme(int sig){ // REGARDER LA SOLUTION INTERNET. PLUS CHIANT MAIS PAS MAL
 	//int status; unused
 	printf("Arr�t en cours, il faut attendre de finir l'execution des programmes fils.\n");
 	//waitpid(fils, &status, WNOHANG);    Comment car fils undeclared
 	exit(0);
+}
+
+void handler_gcc(char* exec) {
+	execl("/usr/bin/gcc", "gcc", "-o", exec, strcat(exec, ".c"), NULL);
+	perror("Error execl 1");
 }
 
 //******************************************************************************

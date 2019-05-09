@@ -91,10 +91,11 @@ void terminal(int pipefdMinuterie[], int pipefdExec[], int fdMinuterie, int fdEx
 						strcpy(msg.nomFichier, bufferTemp);
 						fdFichier = open(bufferTemp, O_RDONLY, 0444);
 						checkNeg(fdFichier, "Erreur lors de l'ouverture du fichier.");
-						while (nbChar = read(fdFichier, &buffer, MAX_LONGUEUR) != 0)
+						while ((nbChar = (read(fdFichier, &buffer, MAX_LONGUEUR)) != 0))
 						{
 							msg.nbChar = nbChar;
 							strcpy(msg.MessageText, buffer);
+							printf("%d \n", nbChar);
 							ecrireMessageAuServeur(&msg);
 						}
 						shutdown(sockfd, SHUT_WR);
