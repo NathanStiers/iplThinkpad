@@ -69,12 +69,12 @@ int main(int argc, char *argv[])
 						titreConnu = 1;
 						strcat(concatName, msg.nomFichier);
 						fdFichierNouveau = openConfig(concatName);
-						write(fdFichierNouveau, msg.MessageText, strlen(msg.MessageText));
+						write(fdFichierNouveau, msg.MessageText, msg.nbChar);
 					}
 
 					while ((read(connexions[i], &msg, sizeof(msg))) != 0)
 					{
-						write(fdFichierNouveau, msg.MessageText, strlen(msg.MessageText));
+						write(fdFichierNouveau, msg.MessageText, msg.nbChar);
 					}
 					//int fdErreur = open();
 					//while
