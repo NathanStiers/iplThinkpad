@@ -1,8 +1,6 @@
 programmes/test.c: In function ‘main’:
-programmes/test.c:3:5: warning: implicit declaration of function ‘print’ [-Wimplicit-function-declaration]
-     print("Ouais!\n");
-     ^~~~~
-programmes/test.c: At top level:
-programmes/test.c:6:1: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ at end of input
- h
- ^
+programmes/test.c:3:5: warning: implicit declaration of function ‘printf’ [-Wimplicit-function-declaration]
+     printf("Ouais!\n");
+     ^~~~~~
+programmes/test.c:3:5: warning: incompatible implicit declaration of built-in function ‘printf’
+programmes/test.c:3:5: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’
