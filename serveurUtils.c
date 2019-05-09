@@ -1,5 +1,6 @@
 #include "serveurUtils.h"
 #include "utils.h"
+#include "message.h"
 
 
 
@@ -102,4 +103,8 @@ void up() {
 void del_sem() {
   int rv = semctl(sem_id, 0, IPC_RMID);
   checkNeg(rv, "Error semctl");
+}
+
+void removeElement(int elem){
+
 }

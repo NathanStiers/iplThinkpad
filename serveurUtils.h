@@ -69,4 +69,6 @@ void arret_programme(int sig);
  */
 int contains(int id);
 
+void removeElement(int elem);
+
 #endif

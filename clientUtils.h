@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "utils.h"
+#include "message.h"
 
 #define TABECOUTE 2
 #define SERVER_IP "127.0.0.1"
@@ -14,7 +15,7 @@ int sockfd;
 
 int sockfdExec;
 
-void initSocketClient(char ServerIP[16], int Serverport);
+int initSocketClient(char ServerIP[16], int Serverport);
 
 void initSocketClientExec(char ServerIP[16], int Serverport);
 
@@ -26,7 +27,7 @@ void filsMinuterie(int* delay, int pipefdMinuterie[]);
 
 void filsExecution(int pipefdExec[]);
 
-void terminal(int pipefdMintuerie[], int pipefdExec[], int fdMinuterie, int fdExec);
+void terminal(int pipefdExec[], int fdMinuterie, int fdExec);
 
 void afficherMessageCmd();
 

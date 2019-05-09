@@ -12,16 +12,6 @@
 #include <sys/wait.h>
 #include <string.h>
 
-#define MAX_LONGUEUR 256
-#define MAXPROGS 50
-//MESSAGE CODE
-#define MINUTERIE 10
-#define DEMANDE_CONNEXION 1
-#define CONNEXION_REUSSIE 2
-#define CONNEXION_ECHOUEE 3
-#define AJOUT -1
-#define EXEC -2
-
 void checkCond(bool cond, char* msg);
 
 void checkNeg(int res, char* msg);
@@ -43,17 +33,5 @@ pid_t fork_and_run_arg(void (*handler)(), void* arg0);
 pid_t fork_and_run_arg_arg(void (*handler)(), void* arg0, void* arg1);
 
 char* itoa(int i, char b[]);
-
-typedef struct {
-	char MessageText[MAX_LONGUEUR];
-	int nbChar;
-	int code;
-	int idProgramme[MAXPROGS];
-	int nbProgrammes;
-	char nomFichier[MAX_LONGUEUR];
-	int erreurCompil;
-	int nbrExec;
-	long dureeExecTotal;
-} structMessage;
 
 #endif

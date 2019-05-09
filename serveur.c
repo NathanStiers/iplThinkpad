@@ -1,6 +1,7 @@
 #include <sys/select.h>
 #include "utils.h"
 #include "serveurUtils.h"
+#include "message.h"
 
 #define ERREUR_TO_SEND "errorsToSend.txt"
 
