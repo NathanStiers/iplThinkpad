@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include "utils.h"
+#include "message.h"
 
 #define MAX_UTILISATEURS 50
 #define KEY_SHM 42

@@ -3,6 +3,10 @@
 #include "serveurUtils.h"
 #include "message.h"
 
+void handler1();
+
+void compile();
+
 int main(int argc, char *argv[])
 {
 
@@ -10,7 +14,7 @@ int main(int argc, char *argv[])
 	int nbrConnexion = 0;
 	int connexions[MAX_UTILISATEURS];
 	structMessage msg;
-	
+
 	//Init du serv
 	sockfd = initServeur(atoi(argv[1]));
 	printf("Serveur lancée sur le port : %d\n", atoi(argv[1]));
@@ -45,44 +49,31 @@ int main(int argc, char *argv[])
 		for (int i = 0; i < nbrConnexion; i++)
 		{
 			if (FD_ISSET(connexions[i], &rfds))
-			{	
+			{
 				lireMessageClient(&msg, connexions[i]);
-				char* nomProgramme = "";
+				char *nomProgramme = "";
 				int titreConnu = 0;
 				int fdFichierNouveau = -1;
 				char concatName[255] = "programmes/";
 				int numProg = -1;
-				int status;
 				//char useless[5];
 				int fdopen;
 				switch (msg.code)
 				{
 				case AJOUT:
 					// écrit le fichier dans un folder
-					if(!titreConnu){
+					if (!titreConnu)
+					{
 						titreConnu = 1;
 						strcat(concatName, msg.nomFichier);
 						fdFichierNouveau = openConfig(concatName);
 						write(fdFichierNouveau, msg.MessageText, strlen(msg.MessageText));
 					}
-						
-					while((read(connexions[i], &msg, sizeof(msg))) != 0){
+
+					while ((read(connexions[i], &msg, sizeof(msg))) != 0)
+					{
 						write(fdFichierNouveau, msg.MessageText, strlen(msg.MessageText));
 					}
-					//lseek(fdFichierNouveau,-2,SEEK_END);
-					//dprintf(fdFichierNouveau, '\0');  // SUPPRIMER CE PUTAIN DE H !!
-					//lseek(fdFichierNouveau,1,SEEK_END); 
-					
-			  
-					printf("**************************\n");
-					printf("REDIRECTION DE STDERR\n");
-					printf("**************************\n");
-					int stderr_copy = dup(2);
-					checkNeg(stderr_copy, "ERROR dup");
-	
-					fork_and_run_arg(ajoutCompile, nomProgramme);
-					wait(&status);
-					
 					//int fdErreur = open();
 					//while
 					Programme p;
@@ -95,28 +86,22 @@ int main(int argc, char *argv[])
 					*listeProgramme[tailleLogique] = p;
 					up();
 					tailleLogique++;
-					
+					compile(p.nomFichier);
 					fdopen = open(ERREUR_TO_SEND, 0444);
 					checkNeg(fdopen, "Impossible de lire les erreurs\n");
 					while (read(fdopen, &msg.MessageText, MAX_LONGUEUR) != 0)
-						{
-							write(connexions[i], msg.MessageText, strlen(msg.MessageText));
-						}
-					printf("ajout effectué\n");
-					printf("**************************\n");
-					printf("RÉTABLISSEMENT DE STDERR\n");
-					printf("**************************\n");
-					ret = dup2(stderr_copy, 2);
-					checkNeg(ret, "ERROR dup");
-					close(stderr_copy);
+					{
+						write(connexions[i], msg.MessageText, strlen(msg.MessageText));
+					}
 					break;
 				case EXEC:
 					lireMessageClient(&msg, connexions[i]);
-					numProg = msg.idProgramme[0];
+					numProg = msg.idProgramme;
 					down();
-					if(contains(numProg) == -1){
+					if (contains(numProg) == -1)
+					{
 						msg.code = -2;
-						msg.idProgramme[0] = numProg;
+						msg.idProgramme = numProg;
 						ecrireMessageClient(&msg, connexions[i]);
 						up();
 						break;
@@ -134,4 +119,44 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+}
+
+void handler1(char nomFichier[MAX_LONGUEUR])
+{
+	//char* nomFichierTemp = strtok(nomFichier, ".c");
+	execl("/usr/bin/gcc", "gcc", "-o", "programmes/test", "programmes/test.c", NULL);
+	perror("Error execl 1");
+}
+
+void compile(char nomFichier[MAX_LONGUEUR])
+{
+	printf("**************************\n");
+	printf("CRÉATION DU FICHIER res_compile.txt\n");
+	printf("**************************\n");
+	int fd = open("res_compile.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+	checkNeg(fd, "ERROR open");
+
+	printf("**************************\n");
+	printf("REDIRECTION DE STDERR\n");
+	printf("**************************\n");
+	int stderr_copy = dup(2);
+	checkNeg(stderr_copy, "ERROR dup");
+
+	int ret = dup2(fd, 2);
+	checkNeg(ret, "ERROR dup2");
+
+	printf("**************************\n");
+	printf("COMPILATION DU FICHIER hello.c\n");
+	printf("**************************\n");
+	fork_and_run_arg(handler1, nomFichier);
+	int status;
+	wait(&status);
+	printf("SI %d != 0, ALORS regarde dans res_compile.txt\n", WEXITSTATUS(status));
+
+	printf("**************************\n");
+	printf("RÉTABLISSEMENT DE STDERR\n");
+	printf("**************************\n");
+	ret = dup2(stderr_copy, 2);
+	checkNeg(ret, "ERROR dup");
+	close(stderr_copy);
 }
