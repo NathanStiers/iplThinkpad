@@ -1,8 +1,6 @@
-<<<<<<< HEAD
-/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu/Scrt1.o: In function `_start':
-(.text+0x20): undefined reference to `main'
-collect2: error: ld returned 1 exit status
-=======
-Ouais!
-y'a plus ce h de merde, et ça c'est coolos!
->>>>>>> master
+programmes/2.c: In function ‘main’:
+programmes/2.c:3:5: warning: implicit declaration of function ‘printf’ [-Wimplicit-function-declaration]
+     printf("Ouais!\n");
+     ^~~~~~
+programmes/2.c:3:5: warning: incompatible implicit declaration of built-in function ‘printf’
+programmes/2.c:3:5: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’

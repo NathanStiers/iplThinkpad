@@ -35,6 +35,10 @@ int main(int argc, char *argv[])
 	checkNeg(ret, "Erreur de sigaction");
 	ret = sigaction(SIGINT, &newact, NULL);
 	checkNeg(ret, "Erreur de sigaction");
+	//Preparation bloquage SIGINT dans les fils
+	sigset_t newmask, oldmask;
+	sigemptyset(&newmask);
+	sigaddset(&newmask, SIGINT);
 	//Init du serv
 	sockfd = initServeur(atoi(argv[1]));
 	printf("Serveur lancé sur le port : %d\n", atoi(argv[1]));
@@ -52,7 +56,9 @@ int main(int argc, char *argv[])
 				ecrireMessageClient(&message, newsockfd);
 			}
 			nbrFils++;
+			sigprocmask(SIG_BLOCK, &newmask, &oldmask);
 			fork_and_run_arg(handler_fork, &newsockfd);
+			sigprocmask(SIG_SETMASK, &oldmask, NULL);
 		}
 	}
 	printf("%d fils\n", nbrFils);
