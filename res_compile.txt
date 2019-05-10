@@ -1,6 +1,35 @@
-programmes/2.c: In function ‘main’:
-programmes/2.c:3:5: warning: implicit declaration of function ‘printf’ [-Wimplicit-function-declaration]
-     printf("Ouais!\n");
-     ^~~~~~
-programmes/2.c:3:5: warning: incompatible implicit declaration of built-in function ‘printf’
-programmes/2.c:3:5: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’
+Ouais!
+Ouais!
+Ouais!
+Ouais!
+Ouais!
+Ouais!
+Ouais!
+Ouais!
+Ouais!
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test
+Ouais! un message un peu plus long histoire de test

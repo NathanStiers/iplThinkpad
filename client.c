@@ -21,7 +21,7 @@ int port;
 
 char serveurIp[16];
 
-void filsMinuterie(int* delay, int pipefdMinuterie[]);
+void filsMinuterie(int *delay, int pipefdMinuterie[]);
 
 void filsExecution(int pipefdExec[]);
 
@@ -64,7 +64,7 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 	int ret;
 	char buffer[MAX_LONGUEUR];
 	char *bufferTemp;
-	int nbChar;
+	int nbChar = 0;
 	//char nbchar;
 	afficherMessageCmd();
 	while (1)
@@ -77,6 +77,7 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 		case '+': // Ajoute un fichier C sur le serveur.
 			connexionServeur(sockfd, serveurIp, port);
 			msg.code = AJOUT;
+			ecrireMessageAuServeur(&msg);
 			bufferTemp = strtok(NULL, ".");
 			strcat(bufferTemp, ".c");
 			strcpy(msg.nomFichier, bufferTemp);
@@ -84,9 +85,9 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			checkNeg(fdFichier, "Erreur lors de l'ouverture du fichier.");
 			while ((nbChar = read(fdFichier, &buffer, MAX_LONGUEUR)) != 0)
 			{
-				msg.nbChar = nbChar;
 				strcpy(msg.MessageText, buffer);
 				ecrireMessageAuServeur(&msg);
+				write(sockfd, &nbChar, sizeof(int));
 			}
 			shutdown(sockfd, SHUT_WR);
 			closeCheck(fdFichier);
@@ -110,15 +111,21 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			ecrireMessageAuServeur(&msg);
 			while ((nbChar = read(sockfd, &msg, sizeof(msg))) != 0)
 			{
-				ret = write(1, msg.MessageText, msg.nbChar);
+				if (msg.code != -2 && msg.code != -1)
+				{
+					ret = write(1, msg.MessageText, msg.nbChar);
+				}
+				else
+				{
+					break;
+				}
 			}
-			if(msg.code == -2){
-				
-			}
-			printf("Le programme a été executé et notre logiciel retourne %d\n", msg.code);
-			printf("Execution finie du programme %d\n", msg.idProgramme);
-			printf("Avec le code de retour %d\n", msg.nbrExec);
-			printf("En seulement %ld ms\n", msg.dureeExecTotal);
+			printf("\n");
+			printf("Numéro du programme : %d\n", msg.idProgramme);
+			printf("Etat du programme %d\n", msg.code);
+			printf("Temps d'éxecution : %ld ms\n", msg.dureeExecTotal);
+			printf("Code de retour : %d\n", msg.codeRetourProgramme);
+
 			closeCheck(sockfd);
 			break;
 		case 'q': // Déconnecte le client et libère les ressources.
@@ -166,6 +173,7 @@ void filsExecution(int pipefdExec[])
 		if (msg.code == MINUTERIE)
 		{
 			msg.code = EXEC;
+			printf("taillelogique : %d\n", tailleLogique);
 			for (int i = 0; i < tailleLogique; i++)
 			{
 				connexionServeur(sockfdExec, serveurIp, port);
@@ -173,13 +181,22 @@ void filsExecution(int pipefdExec[])
 				ecrireMessageAuServeur(&msg);
 				while ((nbChar = read(sockfd, &msg, sizeof(msg))) != 0)
 				{
-					ret = write(1, msg.MessageText, msg.nbChar);
+					if (msg.code != -2 && msg.code != -1)
+					{
+						ret = write(1, msg.MessageText, msg.nbChar);
+					}
+					else
+					{
+						break;
+					}
 				}
-				printf("Execution finie du programme %d\n", msg.idProgramme);
-				printf("Avec le code de retour %d\n", msg.nbrExec);
-				printf("En seulement %ld ms\n", msg.dureeExecTotal);
+				printf("\n");
+				printf("Numéro du programme : %d\n", msg.idProgramme);
+				printf("Etat du programme %d\n", msg.code);
+				printf("Temps d'éxecution : %ld ms\n", msg.dureeExecTotal);
+				printf("Code de retour : %d\n", msg.codeRetourProgramme);
 				closeCheck(sockfdExec);
-			}	
+			}
 		}
 		else
 		{

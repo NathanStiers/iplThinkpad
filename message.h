@@ -18,7 +18,7 @@ typedef struct {
 	int idProgramme;
 	char nomFichier[MAX_LONGUEUR];
 	int erreurCompil;
-	int nbrExec;
+	int codeRetourProgramme;
 	long dureeExecTotal;
 } structMessage;
 

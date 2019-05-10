@@ -77,11 +77,12 @@ void handler_fork(int *newsockfd)
 	int titreConnu = 0;
 	int fdFichierNouveau = -1;
 	char concatName[255] = "programmes/";
-	int numProg = -1;
+	//int numProg = -1;
 	int fdopen;
 	int nbLut = 0;
 	int contient = 0;
 	int errsrv = 0;
+	int ret;
 	switch (msg.code)
 	{
 	case AJOUT:
@@ -93,16 +94,16 @@ void handler_fork(int *newsockfd)
 			strcat(nomNouveauFichier, ".c");
 			strcat(concatName, nomNouveauFichier);
 			fdFichierNouveau = openConfig(concatName);
-			write(fdFichierNouveau, msg.MessageText, msg.nbChar);
+			///!\ j'ai changé ceci pour permettre de rentrer d'office dans le while
 		}
-
-		while ((read(*newsockfd, &msg, sizeof(msg))) != 0)
+		while ((ret = read(*newsockfd, &msg, sizeof(msg))) != 0)
 		{
-			write(fdFichierNouveau, msg.MessageText, msg.nbChar);
+			read(*newsockfd, &nbLut, sizeof(int));
+			write(fdFichierNouveau, msg.MessageText, nbLut);
 		}
 		Programme p;
 		p.id = memoirePartagee->tailleLogique + 1;
-		strcpy(p.nomFichier, msg.nomFichier); // Il faudrait p-e ajouter l'id au nom de fichier pour éviter les collisions.
+		strcpy(p.nomFichier, msg.nomFichier);
 		p.erreurCompil = 0;
 		p.nbrExec = 0;
 		p.dureeExecTotal = 0;
@@ -113,7 +114,8 @@ void handler_fork(int *newsockfd)
 		compile(concatName);
 		fdopen = open("res_compile.txt", 0444);
 		checkNeg(fdopen, "Impossible de lire les erreurs\n");
-		msg.idProgramme = memoirePartagee->tailleLogique;
+		msg.idProgramme = p.id;
+		printf("TEST DU RENVOIE DE L'ID QUI CHANGE %d\n", p.id);
 		while ((nbLut = read(fdopen, &msg.MessageText, MAX_LONGUEUR)) != 0)
 		{
 			msg.nbChar = nbLut;
@@ -123,14 +125,14 @@ void handler_fork(int *newsockfd)
 		printf("Ajout terminé !\n");
 		break;
 	case EXEC:
-		numProg = msg.idProgramme;
-		msg.idProgramme = numProg;
+		//numProg = msg.idProgramme;
+		//msg.idProgramme = numProg;
 		msg.dureeExecTotal = -1;
+		msg.codeRetourProgramme = -1;
 		down();
-		contient = contains(numProg);
+		contient = contains(msg.idProgramme);
 		if (contient == -1)
 		{
-			msg.idProgramme = memoirePartagee->tailleLogique;
 			up();
 			msg.code = -2;
 			printf("Le programme n'a pas été ajouté avant d'être exécuté\n");
@@ -150,11 +152,15 @@ void handler_fork(int *newsockfd)
 			fdopen = open("res_compile.txt", 0444);
 			checkNeg(fdopen, "Impossible de lire les sorties\n");
 			msg.code = 0;
-			if(!status){
+			if (!status)
+			{
 				msg.code = 1;
 			}
 			msg.dureeExecTotal = tempsExec;
-			msg.nbrExec = status;
+			memoirePartagee->listeProgramme[contient].dureeExecTotal += tempsExec;
+			memoirePartagee->listeProgramme[contient].nbrExec++;
+			msg.codeRetourProgramme = status;
+			memoirePartagee->listeProgramme[contient].erreurCompil = 0;
 			while ((nbLut = read(fdopen, &msg.MessageText, MAX_LONGUEUR)) != 0)
 			{
 				msg.nbChar = nbLut;
@@ -165,6 +171,7 @@ void handler_fork(int *newsockfd)
 		else
 		{
 			msg.code = -1;
+			memoirePartagee->listeProgramme[contient].erreurCompil = 1;
 			printf("Le programme ne peut pas être compilé\n");
 			ecrireMessageClient(&msg, *newsockfd);
 		}
@@ -210,7 +217,6 @@ void handler_sigaction(int sig)
 	if (sig == SIGINT)
 	{
 		isInterupt = false;
-		printf("ctrl+c catch\n");
 	}
 }
 
@@ -223,7 +229,8 @@ void handler2(char nomFichier[MAX_LONGUEUR])
 	perror("Error exec 2");
 }
 
-void execute(char nomFichier[MAX_LONGUEUR]){
+void execute(char nomFichier[MAX_LONGUEUR])
+{
 	int fd = open("res_compile.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
 	checkNeg(fd, "ERROR open");
 	printf("**************************\n");
