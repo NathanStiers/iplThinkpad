@@ -17,12 +17,12 @@
 #include "utils.h"
 #include "message.h"
 
+#define MAXPROGS 50
 #define MAX_UTILISATEURS 50
 #define KEY_SHM 42
 #define PERM 0666
 #define KEY_SEM 4242
 #define TAILLEPHYSIQUE 1000
-#define ERREUR_TO_SEND "errorsToSend.txt"
 
 
 typedef struct{
@@ -44,7 +44,6 @@ typedef struct{
 	int tailleLogique;
 	Programme listeProgramme[TAILLEPHYSIQUE];
 } MemoirePartagee;
-
 
 MemoirePartagee* memoirePartagee;
 
@@ -71,12 +70,6 @@ void down();
 void up();
 
 void del_sem();
-
-void arret_programme(int sig);
-
-void handler_gcc(char* exec);
-
-void ajoutCompile(char* name);
 
 /**
  * Renvoie l'indice de l'id si présent, -1 sinon

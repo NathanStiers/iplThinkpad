@@ -32,3 +32,20 @@ void lireMessageDuServeur(structMessage* msg){
 	int ret = read(sockfd,msg,sizeof(*msg));
 	checkNeg(ret,"read client error");
 }
+
+void connexionServeur(int sockfd, char serverIp[], int port)
+{
+	structMessage msg;
+	sockfd = initSocketClient(serverIp, port);
+	msg.code = DEMANDE_CONNEXION;
+	ecrireMessageAuServeur(&msg);
+	lireMessageDuServeur(&msg);
+	if (msg.code == CONNEXION_REUSSIE)
+	{
+		printf("Réponse du serveur : Inscription acceptée\n");
+	}
+	else
+	{
+		printf("Réponse du serveur : Inscription refusée\n");
+	}
+}
