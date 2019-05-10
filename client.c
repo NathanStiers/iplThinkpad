@@ -94,6 +94,12 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			msg.nbProgrammes = 1;
 			msg.code = EXEC;
 			ecrireMessageAuServeur(&msg);
+			while((nbChar = read(sockfd, &msg, sizeof(msg))) != 0){
+				ret = write(1, msg.MessageText, msg.nbChar);
+			}
+			printf("Execution finie du programme %d\n", msg.idProgramme);
+			printf("Avec le code de retour %d\n", msg.nbrExec);
+			printf("En seulement %ld ms\n", msg.dureeExecTotal);
 			//Reception des msg
 			break;
 		case 'q': // Déconnecte le client et libère les ressources.
