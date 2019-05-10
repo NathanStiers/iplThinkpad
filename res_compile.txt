@@ -1,6 +1,6 @@
-programmes/test.c: In function ‘main’:
-programmes/test.c:3:5: warning: implicit declaration of function ‘printf’ [-Wimplicit-function-declaration]
+programmes/1.c: In function ‘main’:
+programmes/1.c:3:5: warning: implicit declaration of function ‘printf’ [-Wimplicit-function-declaration]
      printf("Ouais!\n");
      ^~~~~~
-programmes/test.c:3:5: warning: incompatible implicit declaration of built-in function ‘printf’
-programmes/test.c:3:5: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’
+programmes/1.c:3:5: warning: incompatible implicit declaration of built-in function ‘printf’
+programmes/1.c:3:5: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’

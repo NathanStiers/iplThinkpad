@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <sys/time.h>
 #include <sys/stat.h>
 #include <sys/signal.h>
 #include <sys/types.h>
@@ -35,5 +36,7 @@ pid_t fork_and_run_arg(void (*handler)(), void* arg0);
 pid_t fork_and_run_arg_arg(void (*handler)(), void* arg0, void* arg1);
 
 char* itoa(int i, char b[]);
+
+long now();
 
 #endif

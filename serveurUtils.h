@@ -19,6 +19,7 @@
 
 #define MAX_UTILISATEURS 50
 #define KEY_SHM 42
+#define PERM 0666
 #define KEY_SEM 4242
 #define TAILLEPHYSIQUE 1000
 #define ERREUR_TO_SEND "errorsToSend.txt"
@@ -39,9 +40,13 @@ union semun {
    struct seminfo  *__buf;  /* Buffer for IPC_INFO (Linux-specific) */
 };
 
-Programme* listeProgramme[TAILLEPHYSIQUE];
+typedef struct{
+	int tailleLogique;
+	Programme listeProgramme[TAILLEPHYSIQUE];
+} MemoirePartagee;
 
-int tailleLogique;
+
+MemoirePartagee* memoirePartagee;
 
 int initServeur(int port);
 
@@ -49,11 +54,13 @@ void lireMessageClient(structMessage * msg, int sockfd);
 
 void ecrireMessageClient(structMessage * msg, int sockfd);
 
-void init_shm();
+void init_shm(size_t size);
 
 void shmdtCheck();
 
 void detruire_shm();
+
+void get_sem();
 
 void init_sem(int val);
 
@@ -75,7 +82,5 @@ void ajoutCompile(char* name);
  * Renvoie l'indice de l'id si présent, -1 sinon
  */
 int contains(int id);
-
-void removeElement(int elem);
 
 #endif

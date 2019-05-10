@@ -119,6 +119,15 @@ char* itoa(int i, char b[]){
     return b;
 }
 
+long now() {
+  struct timeval  tv;
+  
+  int res = gettimeofday(&tv, NULL);
+  checkNeg(res, "Error gettimeofday");
+  
+  return tv.tv_sec * 1000000 + tv.tv_usec;
+}
+
 
 
 

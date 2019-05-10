@@ -31,8 +31,8 @@ void ecrireMessageClient(structMessage *msg, int sockfd){
 
 int contains(int id){
   int indice = -1;
-  for(int i=0;i<tailleLogique; i++){
-    if(listeProgramme[i]->id == id){
+  for(int i=0;i<memoirePartagee->tailleLogique; i++){
+    if(memoirePartagee->listeProgramme[i].id == id){
       indice = i;
     }
   }
@@ -50,17 +50,15 @@ void arret_programme(int sig){ // REGARDER LA SOLUTION INTERNET. PLUS CHIANT MAI
 //MEMOIRE PARTAGEE
 //******************************************************************************
 
-void init_shm() {
-  shm_id = shmget(KEY_SHM, sizeof(int), IPC_CREAT | 0666);
+void init_shm(size_t size) {
+  shm_id = shmget(KEY_SHM, size, IPC_CREAT | PERM);
   checkNeg(shm_id, "Error shmget");
-  for(int i=0;i<TAILLEPHYSIQUE;i++){
-    listeProgramme[i] = shmat(shm_id, NULL, 0);
-    checkCond(listeProgramme == (void*) -1, "Error shmat");
-  }
+  memoirePartagee = shmat(shm_id, NULL, 0);
+  checkCond(memoirePartagee == (void*) -1, "Error shmat");
 }
 
 void shmdtCheck() {
-  int r = shmdt(listeProgramme);
+  int r = shmdt(memoirePartagee);
   checkNeg(r, "Error shmdt");
 }
 
@@ -72,6 +70,11 @@ void detruire_shm() {
 //******************************************************************************
 //SEMAPHORES
 //******************************************************************************
+
+void get_sem(){
+  sem_id = semget(KEY_SEM, 0, 0);
+  checkNeg(sem_id, "Error semget");
+}
 
 void init_sem(int val) {
 
@@ -103,8 +106,4 @@ void up() {
 void del_sem() {
   int rv = semctl(sem_id, 0, IPC_RMID);
   checkNeg(rv, "Error semctl");
-}
-
-void removeElement(int elem){
-
 }
