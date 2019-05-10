@@ -1,39 +1,43 @@
-#include <sys/select.h>
 #include <errno.h>
 #include "utils.h"
 #include "serveurUtils.h"
 #include "message.h"
 
+int nbrFils = 0;
+bool isInterupt = true;
+void handler_empty(int sig);
 
-void handler_fork(int* sockfd);
+void handler_sigaction(int sig);
+
+void handler_fork(int *sockfd);
 
 void handler2();
 
 void handler1();
 
-void compile(char nomFichier[MAX_LONGUEUR]);
-
-void execute(char nomFichier[MAX_LONGUEUR]);
-
-int status;
-
-long tempsExec;
+void compile();
 
 int main(int argc, char *argv[])
 {
 	get_sem();
 	init_shm(sizeof(MemoirePartagee));
-	int sockfd, newsockfd;
-	structMessage message;
-	//int nbrConnexion = 0;
 
+	int sockfd, newsockfd, ret, status;
+	structMessage message;
+	//Sigaction
+	struct sigaction newact = {{0}};
+	newact.sa_handler = handler_sigaction;
+	ret = sigaction(SIGCHLD, &newact, NULL);
+	checkNeg(ret, "Erreur de sigaction");
+	ret = sigaction(SIGINT, &newact, NULL);
+	checkNeg(ret, "Erreur de sigaction");
 	//Init du serv
 	sockfd = initServeur(atoi(argv[1]));
 	printf("Serveur lancé sur le port : %d\n", atoi(argv[1]));
 
-	while (1)
+	while (isInterupt)
 	{
-		printf("attente...\n");
+		printf("attente... Je suis le daron de %d fils.\n", nbrFils);
 		newsockfd = accept(sockfd, NULL, NULL);
 		if (newsockfd > 0)
 		{
@@ -43,12 +47,19 @@ int main(int argc, char *argv[])
 				message.code = CONNEXION_REUSSIE;
 				ecrireMessageClient(&message, newsockfd);
 			}
+			nbrFils++;
 			fork_and_run_arg(handler_fork, &newsockfd);
 		}
 	}
+	printf("%d fils\n", nbrFils);
+	while (nbrFils != 0)
+	{
+		wait(&status);
+	}
+	exit(1);
 }
 
-void handler_fork(int* newsockfd)
+void handler_fork(int *newsockfd)
 {
 	structMessage msg;
 	lireMessageClient(&msg, *newsockfd);
@@ -57,6 +68,7 @@ void handler_fork(int* newsockfd)
 	int fdFichierNouveau = -1;
 	char concatName[255] = "programmes/";
 	int numProg = -1;
+	int status;
 	int fdopen;
 	int nbLut = 0;
 	int contient = 0;
@@ -74,21 +86,21 @@ void handler_fork(int* newsockfd)
 			fdFichierNouveau = openConfig(concatName);
 			write(fdFichierNouveau, msg.MessageText, msg.nbChar);
 		}
-		
+
 		while ((read(*newsockfd, &msg, sizeof(msg))) != 0)
 		{
 			write(fdFichierNouveau, msg.MessageText, msg.nbChar);
 		}
 		Programme p;
-		p.id = memoirePartagee->tailleLogique+1;
+		p.id = memoirePartagee->tailleLogique + 1;
 		strcpy(p.nomFichier, msg.nomFichier); // Il faudrait p-e ajouter l'id au nom de fichier pour éviter les collisions.
 		p.erreurCompil = 0;
-		p.nbrExec = 0; // code de retour du pgm
+		p.nbrExec = 0;
 		p.dureeExecTotal = 0;
 		down();
 		memoirePartagee->listeProgramme[memoirePartagee->tailleLogique] = p;
-		memoirePartagee->tailleLogique++;
 		up();
+		memoirePartagee->tailleLogique++;
 		compile(concatName);
 		fdopen = open("res_compile.txt", 0444);
 		checkNeg(fdopen, "Impossible de lire les erreurs\n");
@@ -98,6 +110,7 @@ void handler_fork(int* newsockfd)
 			msg.nbChar = nbLut;
 			write(*newsockfd, &msg, sizeof(msg));
 		}
+		sleep(50);
 		shutdown(*newsockfd, SHUT_WR);
 		printf("Ajout terminé !\n");
 		break;
@@ -109,39 +122,34 @@ void handler_fork(int* newsockfd)
 		contient = contains(numProg);
 		if (contient == -1)
 		{
-			msg.idProgramme = memoirePartagee->tailleLogique;
-			up();
 			msg.code = -2;
-			printf("Le programme n'a pas été ajouté avant d'être exécuté\n");
+			printf("Le programme à pas été ajouté\n");
 			ecrireMessageClient(&msg, *newsockfd);
+			up();
 			printf("Execution terminée !\n");
 			break;
 		}
-		strcat(concatName, itoa(memoirePartagee->listeProgramme[contient].id, nomNouveauFichier));
-		strcat(concatName, ".c");
-		fdopen = open(concatName, O_CREAT | O_EXCL, 0666);
+		fdopen = open(memoirePartagee->listeProgramme[contient].nomFichier, O_CREAT | O_EXCL, 0666);
 		errsrv = errno;
 		up();
 		if (errsrv == EEXIST)
 		{
-			printf("%s\n", concatName);
-			execute(concatName);
-			fdopen = open("res_compile.txt", 0444);
-			checkNeg(fdopen, "Impossible de lire les sorties\n");
-			msg.code = 1; // ou 0 à faire selon statut
-			msg.dureeExecTotal = tempsExec;
-			msg.nbrExec = status;
-			while ((nbLut = read(fdopen, &msg.MessageText, MAX_LONGUEUR)) != 0)
-			{
-				msg.nbChar = nbLut;
-				write(*newsockfd, &msg, sizeof(msg));
-			}
-			shutdown(*newsockfd, SHUT_WR);
+			printf("**************************\n");
+			printf("EXÉCUTION\n");
+			printf("**************************\n");
+			long t1 = now();
+			fork_and_run(handler2);
+			wait(&status);
+			long t2 = now();
+
+			printf("SI %d != 0 ALORS execution ok\n", WIFEXITED(status));
+			printf("SI exécution ok ALORS les statut de l'exécution = %d\n", WEXITSTATUS(status));
+			printf("Le temps d'exécution = %ld\n", t2 - t1);
 		}
 		else
 		{
 			msg.code = -1;
-			printf("Le programme ne peut pas être compilé\n");
+			printf("Le programme contient des erreurs\n");
 			ecrireMessageClient(&msg, *newsockfd);
 		}
 		printf("Execution terminée !\n");
@@ -158,67 +166,39 @@ void handler1(char nomFichier[MAX_LONGUEUR])
 	perror("Error execl 1");
 }
 
-void handler2(char nomFichier[MAX_LONGUEUR])
+void handler2()
 {
-	char execFile[MAX_LONGUEUR];
-	strcpy(execFile, nomFichier);
-	strtok(execFile, ".c");
-	execl(execFile, nomFichier, NULL);
+	execl("./hello", "hello", NULL);
 	perror("Error exec 2");
-}
-
-void execute(char nomFichier[MAX_LONGUEUR]){
-	int fd = open("res_compile.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
-	checkNeg(fd, "ERROR open");
-	printf("**************************\n");
-	printf("EXÉCUTION\n");
-	printf("**************************\n");
-	int stdout_copy = dup(1);
-	checkNeg(stdout_copy, "ERROR dup");
-	int ret = dup2(fd, 1);
-	checkNeg(ret, "ERROR dup2");
-	long t1 = now();
-	fork_and_run_arg(handler2, nomFichier);
-	wait(&status);
-	long t2 = now();
-	tempsExec = t2 - t1;
-	//printf("SI %d != 0 ALORS execution ok\n", WIFEXITED(status)); // PLUS QU'A VERIFIER SI C'EST BON
-	//printf("SI exécution ok ALORS les statut de l'exécution = %d\n", WEXITSTATUS(status));
-	//printf("Le temps d'exécution = %ld\n", t2 - t1);
-	ret = dup2(stdout_copy, 1);
-	checkNeg(ret, "ERROR dup");
-	close(stdout_copy);
 }
 
 void compile(char nomFichier[MAX_LONGUEUR])
 {
-	printf("**************************\n");
-	printf("CRÉATION DU FICHIER res_compile.txt\n");
-	printf("**************************\n");
 	int fd = open("res_compile.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
 	checkNeg(fd, "ERROR open");
-
-	printf("**************************\n");
-	printf("REDIRECTION DE STDERR\n");
-	printf("**************************\n");
 	int stderr_copy = dup(2);
 	checkNeg(stderr_copy, "ERROR dup");
 
 	int ret = dup2(fd, 2);
 	checkNeg(ret, "ERROR dup2");
-
-	printf("**************************\n");
-	printf("COMPILATION DU FICHIER hello.c\n");
-	printf("**************************\n");
 	fork_and_run_arg(handler1, nomFichier);
 	int status;
 	wait(&status);
-	printf("SI %d != 0, ALORS regarde dans res_compile.txt\n", WEXITSTATUS(status));
 
-	printf("**************************\n");
-	printf("RÉTABLISSEMENT DE STDERR\n");
-	printf("**************************\n");
 	ret = dup2(stderr_copy, 2);
 	checkNeg(ret, "ERROR dup");
 	close(stderr_copy);
+}
+
+void handler_sigaction(int sig)
+{
+	if (sig == SIGCHLD)
+	{
+		nbrFils--;
+	}
+	if (sig == SIGINT)
+	{
+		isInterupt = false;
+		printf("ctrl+c catch\n");
+	}
 }

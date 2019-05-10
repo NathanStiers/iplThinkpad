@@ -77,7 +77,7 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			shutdown(sockfd, SHUT_WR);
 			closeCheck(fdFichier);
 			while((nbChar = read(sockfd, &msg, sizeof(msg))) != 0){
-				ret = write(1, msg.MessageText, nbChar);
+				ret = write(1, msg.MessageText, msg.nbChar);
 			}
 			printf("\n Le numéro de votre programme est le : %d\n", msg.idProgramme);
 			closeCheck(sockfd);

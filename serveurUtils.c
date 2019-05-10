@@ -107,3 +107,4 @@ void del_sem() {
   int rv = semctl(sem_id, 0, IPC_RMID);
   checkNeg(rv, "Error semctl");
 }
+
