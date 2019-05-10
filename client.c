@@ -76,7 +76,8 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			}
 			shutdown(sockfd, SHUT_WR);
 			closeCheck(fdFichier);
-			while((nbChar = read(sockfd, &msg, sizeof(msg))) != 0){
+			while ((nbChar = read(sockfd, &msg, sizeof(msg))) != 0)
+			{
 				ret = write(1, msg.MessageText, msg.nbChar);
 			}
 			printf("\n Le numéro de votre programme est le : %d\n", msg.idProgramme);
@@ -94,7 +95,8 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			msg.nbProgrammes = 1;
 			msg.code = EXEC;
 			ecrireMessageAuServeur(&msg);
-			while((nbChar = read(sockfd, &msg, sizeof(msg))) != 0){
+			while ((nbChar = read(sockfd, &msg, sizeof(msg))) != 0)
+			{
 				ret = write(1, msg.MessageText, msg.nbChar);
 			}
 			printf("Execution finie du programme %d\n", msg.idProgramme);
@@ -138,21 +140,32 @@ void filsExecution(int pipefdExec[])
 	int tabProgrammes[MAXPROGS];
 	int tailleLogique = 0;
 	int ret;
+	int nbChar;
 	structMessage msg;
 	while (1)
 	{
 		ret = read(pipefdExec[0], &msg, sizeof(msg));
 		checkNeg(ret, "Erreur lors du read dans le fils d'éxecution.");
-		if(msg.code == MINUTERIE){
+		if (msg.code == MINUTERIE)
+		{
 			connexionServeur(sockfdExec);
 			msg.code = EXEC;
-			for(int i=0;i<tailleLogique;i++){
+			for (int i = 0; i < tailleLogique; i++)
+			{
 				msg.idProgramme = tabProgrammes[i];
 				ecrireMessageAuServeur(&msg);
-				//Lecutre du résultat.
+				while ((nbChar = read(sockfd, &msg, sizeof(msg))) != 0)
+				{
+					ret = write(1, msg.MessageText, msg.nbChar);
+				}
+				printf("Execution finie du programme %d\n", msg.idProgramme);
+				printf("Avec le code de retour %d\n", msg.nbrExec);
+				printf("En seulement %ld ms\n", msg.dureeExecTotal);
 			}
 			closeCheck(sockfdExec);
-		}else{
+		}
+		else
+		{
 			tabProgrammes[tailleLogique] = msg.idProgramme;
 			tailleLogique++;
 		}
