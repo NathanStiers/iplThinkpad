@@ -17,12 +17,26 @@
 
 structMessage msg;
 
+int port;
+
+char serveurIp[16];
+
+void filsMinuterie(int* delay, int pipefdMinuterie[]);
+
+void filsExecution(int pipefdExec[]);
+
+void terminal(int pipefdExec[], int fdMinuterie, int fdExec);
+
+void afficherMessageCmd();
+
 int main(int argc, char *argv[])
 {
 	if (argc > 4)
 	{
 		perror("Nombres de paramètre incorrect : ./client adr port delay");
 	}
+	strcpy(serveurIp, argv[1]);
+	port = strtol(argv[2], NULL, 0);
 	int delay = atoi(argv[3]);
 	//*****************************************************************************
 	// Initialisation des pipes
@@ -34,7 +48,7 @@ int main(int argc, char *argv[])
 	checkNeg(ret, "Problème lors du pipe du fils d'éxecution.");
 	int fdExec = fork_and_run_arg(&filsExecution, &pipefdExec);
 	int fdMinuterie = fork_and_run_arg_arg(&filsMinuterie, &delay, &pipefdExec);
-	close(pipefdExec[0]);
+	closeCheck(pipefdExec[0]);
 
 	printf("Bienvenue dans le programme\n");
 	terminal(pipefdExec, fdMinuterie, fdExec);
@@ -61,7 +75,7 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 		switch (*bufferTemp)
 		{
 		case '+': // Ajoute un fichier C sur le serveur.
-			connexionServeur(sockfd);
+			connexionServeur(sockfd, serveurIp, port);
 			msg.code = AJOUT;
 			bufferTemp = strtok(NULL, ".");
 			strcat(bufferTemp, ".c");
@@ -76,7 +90,8 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			}
 			shutdown(sockfd, SHUT_WR);
 			closeCheck(fdFichier);
-			while((nbChar = read(sockfd, &msg, sizeof(msg))) != 0){
+			while ((nbChar = read(sockfd, &msg, sizeof(msg))) != 0)
+			{
 				ret = write(1, msg.MessageText, msg.nbChar);
 			}
 			printf("\n Le numéro de votre programme est le : %d\n", msg.idProgramme);
@@ -88,13 +103,13 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			write(pipefdExec[1], &msg, sizeof(msg));
 			break;
 		case '@': // Demande d'exec un programme au serveur.
-			connexionServeur(sockfd);
+			connexionServeur(sockfd, serveurIp, port);
 			bufferTemp = strtok(NULL, " ");
 			msg.idProgramme = strtol(bufferTemp, NULL, 0);
-			msg.nbProgrammes = 1;
 			msg.code = EXEC;
 			ecrireMessageAuServeur(&msg);
-			while((nbChar = read(sockfd, &msg, sizeof(msg))) != 0){
+			while ((nbChar = read(sockfd, &msg, sizeof(msg))) != 0)
+			{
 				ret = write(1, msg.MessageText, msg.nbChar);
 			}
 			if(msg.code == -2){
@@ -104,7 +119,7 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			printf("Execution finie du programme %d\n", msg.idProgramme);
 			printf("Avec le code de retour %d\n", msg.nbrExec);
 			printf("En seulement %ld ms\n", msg.dureeExecTotal);
-			//Reception des msg
+			closeCheck(sockfd);
 			break;
 		case 'q': // Déconnecte le client et libère les ressources.
 			kill(fdMinuterie, SIGKILL);
@@ -124,7 +139,7 @@ void filsMinuterie(int *delay, int pipefdExec[])
 	structMessage msg;
 	int ret;
 	msg.code = MINUTERIE;
-	close(pipefdExec[0]);
+	closeCheck(pipefdExec[0]);
 	while (1)
 	{
 		sleep(*delay);
@@ -138,25 +153,36 @@ void filsMinuterie(int *delay, int pipefdExec[])
  * */
 void filsExecution(int pipefdExec[])
 {
-	close(pipefdExec[1]);
+	closeCheck(pipefdExec[1]);
 	int tabProgrammes[MAXPROGS];
 	int tailleLogique = 0;
 	int ret;
+	int nbChar;
 	structMessage msg;
 	while (1)
 	{
 		ret = read(pipefdExec[0], &msg, sizeof(msg));
 		checkNeg(ret, "Erreur lors du read dans le fils d'éxecution.");
-		if(msg.code == MINUTERIE){
-			connexionServeur(sockfdExec);
+		if (msg.code == MINUTERIE)
+		{
 			msg.code = EXEC;
-			for(int i=0;i<tailleLogique;i++){
+			for (int i = 0; i < tailleLogique; i++)
+			{
+				connexionServeur(sockfdExec, serveurIp, port);
 				msg.idProgramme = tabProgrammes[i];
 				ecrireMessageAuServeur(&msg);
-				//Lecutre du résultat.
-			}
-			closeCheck(sockfdExec);
-		}else{
+				while ((nbChar = read(sockfd, &msg, sizeof(msg))) != 0)
+				{
+					ret = write(1, msg.MessageText, msg.nbChar);
+				}
+				printf("Execution finie du programme %d\n", msg.idProgramme);
+				printf("Avec le code de retour %d\n", msg.nbrExec);
+				printf("En seulement %ld ms\n", msg.dureeExecTotal);
+				closeCheck(sockfdExec);
+			}	
+		}
+		else
+		{
 			tabProgrammes[tailleLogique] = msg.idProgramme;
 			tailleLogique++;
 		}
@@ -175,21 +201,4 @@ void afficherMessageCmd()
 	printf("* Demande l'éxecution d'un programme : @ num\n");
 	printf("* Déconnection : q\n");
 	printf("***************************************************\n");
-}
-
-void connexionServeur(int sockfd)
-{
-	structMessage msg;
-	sockfd = initSocketClient(SERVER_IP, PORT_IP);
-	msg.code = DEMANDE_CONNEXION;
-	ecrireMessageAuServeur(&msg);
-	lireMessageDuServeur(&msg);
-	if (msg.code == CONNEXION_REUSSIE)
-	{
-		printf("Réponse du serveur : Inscription acceptée\n");
-	}
-	else
-	{
-		printf("Réponse du serveur : Inscription refusée\n");
-	}
 }
