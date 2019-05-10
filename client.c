@@ -97,6 +97,10 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			while((nbChar = read(sockfd, &msg, sizeof(msg))) != 0){
 				ret = write(1, msg.MessageText, msg.nbChar);
 			}
+			if(msg.code == -2){
+				
+			}
+			printf("Le programme a été executé et notre logiciel retourne %d\n", msg.code);
 			printf("Execution finie du programme %d\n", msg.idProgramme);
 			printf("Avec le code de retour %d\n", msg.nbrExec);
 			printf("En seulement %ld ms\n", msg.dureeExecTotal);

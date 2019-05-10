@@ -143,7 +143,10 @@ void handler_fork(int *newsockfd)
 			execute(concatName);
 			fdopen = open("res_compile.txt", 0444);
 			checkNeg(fdopen, "Impossible de lire les sorties\n");
-			msg.code = 1; // ou 0 à faire selon statut
+			msg.code = 0;
+			if(!status){
+				msg.code = 1;
+			}
 			msg.dureeExecTotal = tempsExec;
 			msg.nbrExec = status;
 			while ((nbLut = read(fdopen, &msg.MessageText, MAX_LONGUEUR)) != 0)
@@ -159,6 +162,7 @@ void handler_fork(int *newsockfd)
 			printf("Le programme ne peut pas être compilé\n");
 			ecrireMessageClient(&msg, *newsockfd);
 		}
+		close(fdopen);
 		printf("Execution terminée !\n");
 		break;
 	}
