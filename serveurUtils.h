@@ -17,7 +17,6 @@
 #include "utils.h"
 #include "message.h"
 
-#define MAXPROGS 50
 #define MAX_UTILISATEURS 50
 #define KEY_SHM 42
 #define PERM 0666

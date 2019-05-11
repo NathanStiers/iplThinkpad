@@ -12,7 +12,6 @@
 #include "clientUtils.h"
 #include "message.h"
 
-#define TABECOUTE 2
 #define MAXPROGS 50
 
 structMessage msg;

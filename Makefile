@@ -21,7 +21,7 @@ maint.o : maint.c utils.h serveurUtils.h
 serveur : serveur.o utils.o serveurUtils.o
 	cc $(CFLAGS) $(EXEC)
 	
-serveur.o : serveur.c utils.h serveurUtils.h
+serveur.o : serveur.c utils.h serveurUtils.h message.h
 	cc $(CFLAGS) $(OBJECT)
 	
 #### CLIENT ####
@@ -29,7 +29,7 @@ serveur.o : serveur.c utils.h serveurUtils.h
 client : client.o utils.o clientUtils.o
 	cc $(CFLAGS) $(EXEC)
 	
-client.o : client.c utils.h clientUtils.h
+client.o : client.c utils.h clientUtils.h message.h
 	cc $(CFLAGS) $(OBJECT)
 	
 #### UTILS ####
