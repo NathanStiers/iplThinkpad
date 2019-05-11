@@ -1,6 +1,42 @@
+#include <stdlib.h>
+#include <stdio.h>
+
 int main(int argc, char const *argv[])
 {
-    printf("Ouais!\n");
-    printf("y'a plus ce h de merde, et ça c'est coolos!\n");
-    return 0;
+	printf("Ouais!\n");
+	printf("Ouais!\n");
+	printf("Ouais!\n");
+	printf("Ouais!\n");
+	printf("Ouais!\n");
+	printf("Ouais!\n");
+	printf("Ouais!\n");
+	printf("Ouais!\n");
+	printf("Ouais!\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	printf("Ouais! un message un peu plus long histoire de test\n");
+	exit(0);
+    
 }

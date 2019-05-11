@@ -114,6 +114,7 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 				if (msg.code != -2 && msg.code != -1)
 				{
 					ret = write(1, msg.MessageText, msg.nbChar);
+					checkNeg(ret, "Erreur write");
 				}
 				else
 				{
@@ -125,7 +126,6 @@ void terminal(int pipefdExec[], int fdMinuterie, int fdExec)
 			printf("Etat du programme %d\n", msg.code);
 			printf("Temps d'éxecution : %ld ms\n", msg.dureeExecTotal);
 			printf("Code de retour : %d\n", msg.codeRetourProgramme);
-
 			closeCheck(sockfd);
 			break;
 		case 'q': // Déconnecte le client et libère les ressources.
@@ -172,11 +172,12 @@ void filsExecution(int pipefdExec[])
 		checkNeg(ret, "Erreur lors du read dans le fils d'éxecution.");
 		if (msg.code == MINUTERIE)
 		{
-			msg.code = EXEC;
-			printf("taillelogique : %d\n", tailleLogique);
+			printf("taille logique =  %d\n",tailleLogique);
 			for (int i = 0; i < tailleLogique; i++)
 			{
 				connexionServeur(sockfdExec, serveurIp, port);
+				printf("ça bloque ici\n");
+				msg.code = EXEC;
 				msg.idProgramme = tabProgrammes[i];
 				ecrireMessageAuServeur(&msg);
 				while ((nbChar = read(sockfd, &msg, sizeof(msg))) != 0)
@@ -184,6 +185,7 @@ void filsExecution(int pipefdExec[])
 					if (msg.code != -2 && msg.code != -1)
 					{
 						ret = write(1, msg.MessageText, msg.nbChar);
+						checkNeg(ret,"Erreur write");
 					}
 					else
 					{

@@ -17,9 +17,9 @@ void handler_fork(int *sockfd);
 
 void handler2(char nomFichier[MAX_LONGUEUR]);
 
-void handler1();
+void handler1(char nomFichier[MAX_LONGUEUR]);
 
-void compile();
+int compile(char nomFichier[MAX_LONGUEUR]);
 
 int main(int argc, char *argv[])
 {
@@ -45,23 +45,28 @@ int main(int argc, char *argv[])
 
 	while (isInterupt)
 	{
-		printf("attente... Je suis le daron de %d fils.\n", nbrFils);
-		newsockfd = accept(sockfd, NULL, NULL);
-		if (newsockfd > 0)
+		printf("Actuellement : %d connexions\n", nbrFils);
+		if (nbrFils < 50)
 		{
-			lireMessageClient(&message, newsockfd);
-			if (message.code == DEMANDE_CONNEXION)
+			newsockfd = accept(sockfd, NULL, NULL);
+			if (newsockfd > 0)
 			{
-				message.code = CONNEXION_REUSSIE;
-				ecrireMessageClient(&message, newsockfd);
+				lireMessageClient(&message, newsockfd);
+				if (message.code == DEMANDE_CONNEXION)
+				{
+					message.code = CONNEXION_REUSSIE;
+					ecrireMessageClient(&message, newsockfd);
+				}
+				down();
+				nbrFils++;
+				up();
+				sigprocmask(SIG_BLOCK, &newmask, &oldmask);
+				fork_and_run_arg(handler_fork, &newsockfd);
+				sigprocmask(SIG_SETMASK, &oldmask, NULL);
 			}
-			nbrFils++;
-			sigprocmask(SIG_BLOCK, &newmask, &oldmask);
-			fork_and_run_arg(handler_fork, &newsockfd);
-			sigprocmask(SIG_SETMASK, &oldmask, NULL);
 		}
 	}
-	printf("%d fils\n", nbrFils);
+	printf("%d fils à attendre\n", nbrFils);
 	while (nbrFils != 0)
 	{
 		wait(&status);
@@ -76,12 +81,12 @@ void handler_fork(int *newsockfd)
 	char nomNouveauFichier[MAX_LONGUEUR];
 	int titreConnu = 0;
 	int fdFichierNouveau = -1;
-	char concatName[255] = "programmes/";
+	char concatName[MAX_LONGUEUR] = "programmes/";
 	//int numProg = -1;
+	int tailleLogiqueTemp = 0;
 	int fdopen;
 	int nbLut = 0;
 	int contient = 0;
-	int errsrv = 0;
 	int ret;
 	switch (msg.code)
 	{
@@ -90,50 +95,55 @@ void handler_fork(int *newsockfd)
 		if (!titreConnu)
 		{
 			titreConnu = 1;
-			strcpy(nomNouveauFichier, itoa(memoirePartagee->tailleLogique + 1, nomNouveauFichier));
+			down();
+			memoirePartagee->tailleLogique++;
+			tailleLogiqueTemp = memoirePartagee->tailleLogique;
+			up();
+			strcpy(nomNouveauFichier, itoa(tailleLogiqueTemp, nomNouveauFichier));
 			strcat(nomNouveauFichier, ".c");
 			strcat(concatName, nomNouveauFichier);
 			fdFichierNouveau = openConfig(concatName);
-			///!\ j'ai changé ceci pour permettre de rentrer d'office dans le while
 		}
 		while ((ret = read(*newsockfd, &msg, sizeof(msg))) != 0)
 		{
 			read(*newsockfd, &nbLut, sizeof(int));
 			write(fdFichierNouveau, msg.MessageText, nbLut);
 		}
+		status = compile(concatName);
 		Programme p;
-		p.id = memoirePartagee->tailleLogique + 1;
+		p.id = tailleLogiqueTemp;
 		strcpy(p.nomFichier, msg.nomFichier);
-		p.erreurCompil = 0;
+		if (status == 0)
+		{
+			p.erreurCompil = 0;
+		}
+		else
+		{
+			p.erreurCompil = 1;
+		}
 		p.nbrExec = 0;
 		p.dureeExecTotal = 0;
+		memoirePartagee->listeProgramme[tailleLogiqueTemp-1] = p;
+		
 		down();
-		memoirePartagee->listeProgramme[memoirePartagee->tailleLogique] = p;
-		up();
-		memoirePartagee->tailleLogique++;
-		compile(concatName);
 		fdopen = open("res_compile.txt", 0444);
 		checkNeg(fdopen, "Impossible de lire les erreurs\n");
-		msg.idProgramme = p.id;
-		printf("TEST DU RENVOIE DE L'ID QUI CHANGE %d\n", p.id);
+		msg.idProgramme = tailleLogiqueTemp;
 		while ((nbLut = read(fdopen, &msg.MessageText, MAX_LONGUEUR)) != 0)
-		{
+		{	
 			msg.nbChar = nbLut;
 			write(*newsockfd, &msg, sizeof(msg));
 		}
+		up();
 		shutdown(*newsockfd, SHUT_WR);
 		printf("Ajout terminé !\n");
 		break;
 	case EXEC:
-		//numProg = msg.idProgramme;
-		//msg.idProgramme = numProg;
 		msg.dureeExecTotal = -1;
 		msg.codeRetourProgramme = -1;
-		down();
 		contient = contains(msg.idProgramme);
 		if (contient == -1)
 		{
-			up();
 			msg.code = -2;
 			printf("Le programme n'a pas été ajouté avant d'être exécuté\n");
 			ecrireMessageClient(&msg, *newsockfd);
@@ -143,13 +153,12 @@ void handler_fork(int *newsockfd)
 		strcat(concatName, itoa(memoirePartagee->listeProgramme[contient].id, nomNouveauFichier));
 		strcat(concatName, ".c");
 		fdopen = open(concatName, O_CREAT | O_EXCL, 0666);
-		errsrv = errno;
-		up();
-		if (errsrv == EEXIST)
+		if (memoirePartagee->listeProgramme[contient].erreurCompil == 0)
 		{
 			printf("%s\n", concatName);
 			execute(concatName);
-			fdopen = open("res_compile.txt", 0444);
+			down();
+			fdopen = open("res_exec.txt", 0444);
 			checkNeg(fdopen, "Impossible de lire les sorties\n");
 			msg.code = 0;
 			if (!status)
@@ -160,12 +169,12 @@ void handler_fork(int *newsockfd)
 			memoirePartagee->listeProgramme[contient].dureeExecTotal += tempsExec;
 			memoirePartagee->listeProgramme[contient].nbrExec++;
 			msg.codeRetourProgramme = status;
-			memoirePartagee->listeProgramme[contient].erreurCompil = 0;
 			while ((nbLut = read(fdopen, &msg.MessageText, MAX_LONGUEUR)) != 0)
 			{
 				msg.nbChar = nbLut;
 				write(*newsockfd, &msg, sizeof(msg));
 			}
+			up();
 			shutdown(*newsockfd, SHUT_WR);
 		}
 		else
@@ -190,7 +199,7 @@ void handler1(char nomFichier[MAX_LONGUEUR])
 	perror("Error execl 1");
 }
 
-void compile(char nomFichier[MAX_LONGUEUR])
+int compile(char nomFichier[MAX_LONGUEUR])
 {
 	int fd = open("res_compile.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
 	checkNeg(fd, "ERROR open");
@@ -202,10 +211,11 @@ void compile(char nomFichier[MAX_LONGUEUR])
 	fork_and_run_arg(handler1, nomFichier);
 	int status;
 	wait(&status);
-
+	printf("test du status : %d", status);
 	ret = dup2(stderr_copy, 2);
 	checkNeg(ret, "ERROR dup");
 	close(stderr_copy);
+	return status;
 }
 
 void handler_sigaction(int sig)
@@ -231,11 +241,8 @@ void handler2(char nomFichier[MAX_LONGUEUR])
 
 void execute(char nomFichier[MAX_LONGUEUR])
 {
-	int fd = open("res_compile.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+	int fd = open("res_execute.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
 	checkNeg(fd, "ERROR open");
-	printf("**************************\n");
-	printf("EXÉCUTION\n");
-	printf("**************************\n");
 	int stdout_copy = dup(1);
 	checkNeg(stdout_copy, "ERROR dup");
 	int ret = dup2(fd, 1);
@@ -245,9 +252,6 @@ void execute(char nomFichier[MAX_LONGUEUR])
 	wait(&status);
 	long t2 = now();
 	tempsExec = t2 - t1;
-	//printf("SI %d != 0 ALORS execution ok\n", WIFEXITED(status)); // PLUS QU'A VERIFIER SI C'EST BON
-	//printf("SI exécution ok ALORS les statut de l'exécution = %d\n", WEXITSTATUS(status));
-	//printf("Le temps d'exécution = %ld\n", t2 - t1);
 	ret = dup2(stdout_copy, 1);
 	checkNeg(ret, "ERROR dup");
 	close(stdout_copy);
